@@ -4,7 +4,8 @@ import {getLenticularLensApi} from '@/utils/config';
 export default {
     data() {
         return {
-            socket: null,
+            mainSocket: null,
+            jobSocket: null,
             job: null,
             linksets: [],
             lenses: [],
@@ -18,6 +19,24 @@ export default {
             downloading: [],
         };
     },
+    computed: {
+        hasUnsavedEntityTypeSelections() {
+            return JSON.stringify(this.$root.entityTypeSelections)
+                !== JSON.stringify(this.$root.job.entity_type_selections);
+        },
+
+        hasUnsavedLinksetSpecs() {
+            return JSON.stringify(this.$root.linksetSpecs) !== JSON.stringify(this.$root.job.linkset_specs);
+        },
+
+        hasUnsavedLensSpecs() {
+            return JSON.stringify(this.$root.lensSpecs) !== JSON.stringify(this.$root.job.lens_specs);
+        },
+
+        hasUnsavedViews() {
+            return JSON.stringify(this.$root.views) !== JSON.stringify(this.$root.job.views);
+        },
+    },
     methods: {
         getDatasets(graphqlEndpoint) {
             return this.datasets.hasOwnProperty(graphqlEndpoint) ? this.datasets[graphqlEndpoint] : {};
@@ -26,6 +45,7 @@ export default {
         addEntityTypeSelection() {
             this.entityTypeSelections.unshift({
                 id: findId(this.entityTypeSelections),
+                created: new Date().toISOString(),
                 description: '',
                 dataset: {
                     dataset_id: '',
@@ -45,6 +65,7 @@ export default {
         addLinksetSpec() {
             this.linksetSpecs.unshift({
                 id: findId(this.linksetSpecs),
+                created: new Date().toISOString(),
                 label: 'Linkset ' + (this.linksetSpecs.length + 1),
                 description: '',
                 use_counter: true,
@@ -61,6 +82,7 @@ export default {
         addLensSpec() {
             this.lensSpecs.unshift({
                 id: findId(this.lensSpecs),
+                created: new Date().toISOString(),
                 label: 'Lens ' + (this.lensSpecs.length + 1),
                 description: '',
                 specs: {
@@ -75,6 +97,7 @@ export default {
         addView(id, type) {
             this.views.unshift({
                 id: id,
+                created: new Date().toISOString(),
                 type: type,
                 properties: [],
                 filters: [],
@@ -299,6 +322,8 @@ export default {
         },
 
         async loadJob(id) {
+            const newJobId = !this.job || (id !== this.job.job_id);
+
             const job = await callApi('/job/' + id);
             if (!job)
                 return;
@@ -315,17 +340,33 @@ export default {
                     .filter((data, idx, res) => res.findIndex(data2 => data2 === data) === idx);
                 await Promise.all(graphQlEndpoints.map(data => this.loadDatasets(data)));
 
-                this.entityTypeSelections = entityTypeSelections;
+                this.entityTypeSelections = entityTypeSelections.map(ets => {
+                    if (!ets.created)
+                        ets.created = new Date().toISOString();
+                    return ets;
+                });
             }
 
             if (this.job.linkset_specs)
-                this.linksetSpecs = copy(this.job.linkset_specs);
+                this.linksetSpecs = copy(this.job.linkset_specs).map(linksetSpec => {
+                    if (!linksetSpec.created)
+                        linksetSpec.created = new Date().toISOString();
+                    return linksetSpec;
+                });
 
             if (this.job.lens_specs)
-                this.lensSpecs = copy(this.job.lens_specs);
+                this.lensSpecs = copy(this.job.lens_specs).map(lensSpec => {
+                    if (!lensSpec.created)
+                        lensSpec.created = new Date().toISOString();
+                    return lensSpec;
+                });
 
             if (this.job.views)
-                this.views = copy(this.job.views);
+                this.views = copy(this.job.views).map(view => {
+                    if (!view.created)
+                        view.created = new Date().toISOString();
+                    return view;
+                });
 
             this.linksetSpecs.forEach(linksetSpec =>
                 this.updateView(linksetSpec.id, 'linkset',
@@ -336,7 +377,12 @@ export default {
                     new Set(this.getLinksetSpecsInLens(lensSpec.id)
                         .flatMap(linksetSpec => [...linksetSpec.sources, ...linksetSpec.targets]))));
 
-            await Promise.all([this.loadLinksets(), this.loadLenses(), this.loadClusterings()]);
+            if (newJobId) {
+                await Promise.all([this.loadLinksets(), this.loadLenses(), this.loadClusterings()]);
+                this.setUpJobSocket();
+            }
+            else if (this.jobSocket)
+                this.jobSocket.disconnect();
         },
 
         async loadLinksets() {
@@ -367,6 +413,18 @@ export default {
                 clustering.finished_at = clustering.finished_at ? new Date(clustering.finished_at) : null;
             });
             this.clusterings = clusterings;
+        },
+
+        setUpJobSocket() {
+            if (this.jobSocket)
+                this.jobSocket.disconnect();
+
+            this.jobSocket = io(`${getLenticularLensApi()}/${this.job.job_id}`);
+            this.jobSocket.on('job_update', e => this.jobUpdate(JSON.parse(e)));
+            this.jobSocket.on('alignment_update', e => this.alignmentUpdate(JSON.parse(e)));
+            this.jobSocket.on('alignment_delete', _ => this.loadLinksets() && this.loadLenses());
+            this.jobSocket.on('clustering_update', e => this.clusteringUpdate(JSON.parse(e)));
+            this.jobSocket.on('clustering_delete', _ => this.loadClusterings());
         },
 
         async createJob(inputs) {
@@ -619,10 +677,6 @@ export default {
             this.downloading = downloads.downloading;
         },
 
-        jobUpdate(data) {
-            console.log('job_update', data);
-        },
-
         timbuctooUpdate(data) {
             const downloadedIdx = this.downloaded.findIndex(d =>
                 d.graphql_endpoint === data.graphql_endpoint &&
@@ -646,10 +700,46 @@ export default {
                 this.downloading.push(data);
         },
 
+        async jobUpdate(data) {
+            if (this.job.updated_at >= data.updated_at)
+                return;
+
+            const prevJob = this.job;
+
+            const hasUnsavedEntityTypeSelections = this.hasUnsavedEntityTypeSelections;
+            const prevEntityTypeSelections = this.entityTypeSelections;
+
+            const hasUnsavedLinksetSpecs = this.hasUnsavedLinksetSpecs;
+            const prevLinksetSpecs = this.linksetSpecs;
+
+            const hasUnsavedLensSpecs = this.hasUnsavedLensSpecs;
+            const prevLensSpecs = this.lensSpecs;
+
+            const hasUnsavedViews = this.hasUnsavedViews;
+            const prevViews = this.views;
+
+            await this.loadJob(this.job.job_id);
+
+            this.entityTypeSelections = mergeSpecifications(
+                data.is_entity_type_selections_update, hasUnsavedEntityTypeSelections, prevJob.entity_type_selections,
+                this.entityTypeSelections, prevEntityTypeSelections);
+
+            this.linksetSpecs = mergeSpecifications(
+                data.is_linkset_specs_update, hasUnsavedLinksetSpecs, prevJob.entity_type_selections,
+                this.linksetSpecs, prevLinksetSpecs);
+
+            this.lensSpecs = mergeSpecifications(
+                data.is_lens_specs_update, hasUnsavedLensSpecs, prevJob.entity_type_selections,
+                this.lensSpecs, prevLensSpecs);
+
+            this.views = mergeSpecifications(
+                data.is_views_update, hasUnsavedViews, prevJob.entity_type_selections,
+                this.views, prevViews);
+        },
+
         async alignmentUpdate(data) {
             if (data.spec_type === 'linkset') {
-                const linkset = this.linksets.find(linkset =>
-                    linkset.job_id === data.job_id && linkset.spec_id === data.spec_id);
+                const linkset = this.linksets.find(linkset => linkset.spec_id === data.spec_id);
 
                 if (!linkset || linkset.status !== data.status)
                     await this.loadLinksets();
@@ -659,7 +749,7 @@ export default {
                 }
             }
             else {
-                const lens = this.lenses.find(lens => lens.job_id === data.job_id && lens.spec_id === data.spec_id);
+                const lens = this.lenses.find(lens => lens.spec_id === data.spec_id);
                 if (!lens || lens.status !== data.status)
                     await this.loadLenses();
                 else
@@ -669,7 +759,6 @@ export default {
 
         async clusteringUpdate(data) {
             const clustering = this.clusterings.find(clustering =>
-                clustering.job_id === data.job_id &&
                 clustering.spec_type === data.spec_type &&
                 clustering.spec_id === data.spec_id);
 
@@ -683,17 +772,14 @@ export default {
         },
     },
     mounted() {
-        this.socket = io(getLenticularLensApi());
-        this.socket.on('job_update', e => this.jobUpdate(JSON.parse(e)));
-        this.socket.on('timbuctoo_update', e => this.timbuctooUpdate(JSON.parse(e)));
-        this.socket.on('alignment_update', e => this.alignmentUpdate(JSON.parse(e)));
-        this.socket.on('clustering_update', e => this.clusteringUpdate(JSON.parse(e)));
-        this.socket.on('timbuctoo_delete', _ => this.resetDownloads());
-        this.socket.on('alignment_delete', _ => this.loadLinksets() && this.loadLenses());
-        this.socket.on('clustering_delete', _ => this.loadClusterings());
+        this.mainSocket = io(getLenticularLensApi());
+        this.mainSocket.on('timbuctoo_update', e => this.timbuctooUpdate(JSON.parse(e)));
+        this.mainSocket.on('timbuctoo_delete', _ => this.resetDownloads());
     },
     beforeDestroy() {
-        this.socket.disconnect();
+        this.mainSocket.disconnect();
+        if (this.jobSocket)
+            this.jobSocket.disconnect();
     },
 };
 
@@ -702,11 +788,53 @@ function copy(obj) {
 }
 
 function findId(objs) {
-    let latestId = -1;
-    objs.forEach(obj => {
-        if (obj.id > latestId) latestId = obj.id;
+    return objs.reduce((largestId, obj) => (obj.id > largestId) ? obj.id : largestId, 0) + 1;
+}
+
+function mergeSpecifications(isUpdate, hasUnsaved, original, saved, unSaved) {
+    if (!isUpdate && !hasUnsaved)
+        return saved;
+
+    if (!isUpdate)
+        return unSaved;
+
+    const ids = new Set([...saved.map(obj => obj.id), ...unSaved.map(obj => obj.id)]);
+    ids.forEach(id => {
+        const originalObj = original.find(obj => obj.id === id);
+        const unSavedObj = unSaved.find(obj => obj.id === id);
+        const savedObj = saved.find(obj => obj.id === id);
+
+        if (!unSavedObj) {
+            if (originalObj && savedObj.created === originalObj.created)
+                saved.splice(saved.findIndex(obj => obj.id === id), 1);
+            return;
+        }
+
+        if (!savedObj) {
+            if (!originalObj)
+                saved.push(unSavedObj);
+            return;
+        }
+
+        // If the two objects have the same creation time,
+        // then we can try to find out which one has changed and accept that one
+        // If they do not have the same creation time, we'll favor the newer saved one and we'll lose the unsaved one
+        if (unSavedObj.created === savedObj.created) {
+            const unSavedHasChanges = !originalObj || JSON.stringify(unSavedObj) !== JSON.stringify(originalObj);
+            const savedHasChanges = !originalObj || JSON.stringify(savedObj) !== JSON.stringify(originalObj);
+
+            if ((!unSavedHasChanges && !savedHasChanges) || (!unSavedHasChanges && savedHasChanges))
+                return;
+
+            if (unSavedHasChanges && !savedHasChanges)
+                saved[saved.findIndex(obj => obj.id === id)] = unSavedObj;
+
+            // Both have changes: we could try to merge,
+            // but we'll accept the saved one and we'll lose the unsaved changes
+        }
     });
-    return latestId + 1;
+
+    return saved;
 }
 
 async function callApi(relPath, body, params = {}) {

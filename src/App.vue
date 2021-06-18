@@ -13,15 +13,15 @@
 
           <research
               :job-id="jobId"
-              :job-title="jobTitle"
-              :job-description="jobDescription"
-              :job-link="jobLink"
+              :job-title="jobMetadata.title"
+              :job-description="jobMetadata.description"
+              :job-link="jobMetadata.link"
               :research-form="researchForm"
               :is-loading="isLoading"
               :is-updating="isUpdating"
               @load="setJobId($event)"
               @create="createJob($event)"
-              @update="updateJob($event)"/>
+              @update="updateJobResearch($event)"/>
         </tab-content-structure>
       </tab-content>
 
@@ -64,7 +64,7 @@
                 :linkset-spec="linksetSpec"
                 :allow-delete="!specsUsedInLens.find(spec => spec.type === 'linkset' && spec.id === linksetSpec.id)"
                 @duplicate="duplicateLinksetSpec($event)"
-                @submit="submit"
+                @submit="$root.submit()"
                 @remove="removeSpec('linkset', linksetSpec.id)"
                 @update:label="linksetSpec.label = $event"
                 @show="linksetSpecOpen = linksetSpec.id"
@@ -90,7 +90,7 @@
                 :lens-spec="lensSpec"
                 :allow-delete="!specsUsedInLens.find(spec => spec.type === 'lens' && spec.id === lensSpec.id)"
                 @duplicate="duplicateLensSpec($event)"
-                @submit="submit"
+                @submit="$root.submit()"
                 @remove="removeSpec('lens', lensSpec.id)"
                 @update:label="lensSpec.label = $event"
                 @show="lensSpecOpen = lensSpec.id"
@@ -203,9 +203,6 @@
                 researchForm: '',
                 idToLoad: '',
                 jobId: '',
-                jobTitle: '',
-                jobDescription: '',
-                jobLink: '',
                 isSaved: true,
                 isLoading: false,
                 isUpdating: false,
@@ -219,12 +216,20 @@
             };
         },
         computed: {
+            jobMetadata() {
+                return {
+                    id: this.$root.job ? this.$root.job.job_id : null,
+                    updated_at: this.$root.job ? this.$root.job.updated_at : null,
+                    title: this.$root.job ? this.$root.job.job_title : null,
+                    description: this.$root.job ? this.$root.job.job_description : null,
+                    link: this.$root.job ? this.$root.job.job_link : null
+                };
+            },
+
             hasChanges() {
                 return !Boolean(this.$root.job)
-                    || JSON.stringify(this.$root.entityTypeSelections) !== JSON.stringify(this.$root.job['entity_type_selections'])
-                    || JSON.stringify(this.$root.linksetSpecs) !== JSON.stringify(this.$root.job['linkset_specs'])
-                    || JSON.stringify(this.$root.lensSpecs) !== JSON.stringify(this.$root.job['lens_specs'])
-                    || JSON.stringify(this.$root.views) !== JSON.stringify(this.$root.job['views']);
+                    || this.$root.hasUnsavedEntityTypeSelections || this.$root.hasUnsavedLinksetSpecs
+                    || this.$root.hasUnsavedLensSpecs || this.$root.hasUnsavedViews;
             },
 
             hasFinishedLinkset() {
@@ -303,8 +308,8 @@
                     : this.isTabValid(this.$root.entityTypeSelections.length > 0, false,
                         'Please add at least one entity-type selection!');
 
-                if (isValid || alwaysSave)
-                    this.submit();
+                if ((isValid || alwaysSave) && this.$root.hasUnsavedEntityTypeSelections)
+                    this.$root.submit();
 
                 return isValid;
             },
@@ -319,8 +324,8 @@
                     : this.isTabValid(this.$root.linksetSpecs.length > 0, false,
                         'Please add at least one linkset spec!');
 
-                if (isValid || alwaysSave)
-                    this.submit();
+                if ((isValid || alwaysSave) && this.$root.hasUnsavedLinksetSpecs)
+                    this.$root.submit();
 
                 return isValid;
             },
@@ -332,8 +337,9 @@
 
                 const isValid = this.isTabValid(!results.includes(false), alwaysSave,
                     'One or more lensSpec specs contain errors!');
-                if (isValid || alwaysSave)
-                    this.submit();
+
+                if ((isValid || alwaysSave) && this.$root.hasUnsavedLensSpecs)
+                    this.$root.submit();
 
                 return isValid;
             },
@@ -394,11 +400,11 @@
                 await this.setJobId(jobId);
             },
 
-            async updateJob(jobData) {
+            async updateJobResearch(jobData) {
                 this.isUpdating = true;
 
                 await this.$root.updateJob(jobData);
-                await this.getJobData();
+                await this.$root.loadJob(this.jobId);
 
                 this.isUpdating = false;
             },
@@ -416,52 +422,10 @@
                     this.researchForm = 'existing';
                 }
 
-                await this.getJobData();
-
-                this.isLoading = false;
-            },
-
-            async submit() {
-                await this.$root.submit();
-                await this.getJobData();
-            },
-
-            async getJobData() {
-                if (this.jobId !== '') {
+                if (this.jobId)
                     await this.$root.loadJob(this.jobId);
 
-                    if (this.$root.job) {
-                        this.jobTitle = this.$root.job.job_title;
-                        this.jobDescription = this.$root.job.job_description;
-                        this.jobLink = this.$root.job.job_link;
-
-                        this.activateStep('entityTypeSelections');
-
-                        if (this.$root.entityTypeSelections.length === 0)
-                            this.$root.addEntityTypeSelection();
-
-                        if (this.$root.linksetSpecs.length === 0)
-                            this.$root.addLinksetSpec();
-                        else
-                            this.activateStep('linksetSpecs');
-
-                        await Promise.all([
-                            this.$root.loadLinksets(),
-                            this.$root.loadLenses(),
-                            this.$root.loadClusterings()
-                        ]);
-
-                        this.activateLinksetSteps();
-                    }
-                }
-            },
-
-            activateLinksetSteps() {
-                if (this.hasFinishedLinkset) {
-                    this.activateStep('lensSpecs');
-                    this.activateStep('validation');
-                    this.activateStep('export');
-                }
+                this.isLoading = false;
             },
 
             async removeSpec(type, id) {
@@ -482,7 +446,7 @@
                         if (viewIdx > -1)
                             this.$root.views.splice(viewIdx, 1);
 
-                        await this.submit();
+                        await this.$root.submit();
                     }
                     else if (type === 'lens') {
                         if (this.$root.lenses.find(lens => lens.spec_id === id)) {
@@ -497,7 +461,7 @@
                         if (viewIdx > -1)
                             this.$root.views.splice(viewIdx, 1);
 
-                        await this.submit();
+                        await this.$root.submit();
                     }
                 }
             },
@@ -518,8 +482,23 @@
             this.$root.resetDownloads();
         },
         watch: {
+            jobMetadata() {
+                this.activateStep('entityTypeSelections');
+                this.activateStep('linksetSpecs');
+
+                if (this.$root.entityTypeSelections.length === 0)
+                    this.$root.addEntityTypeSelection();
+
+                if (this.$root.linksetSpecs.length === 0)
+                    this.$root.addLinksetSpec();
+            },
+
             hasFinishedLinkset() {
-                this.activateLinksetSteps();
+                if (this.hasFinishedLinkset) {
+                    this.activateStep('lensSpecs');
+                    this.activateStep('validation');
+                    this.activateStep('export');
+                }
             },
         },
     };

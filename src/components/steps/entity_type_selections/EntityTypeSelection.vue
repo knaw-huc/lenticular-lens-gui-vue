@@ -182,7 +182,6 @@
         data() {
             return {
                 prevAutoLabel: '',
-                datasetsLoaded: true,
                 isOpen: false,
             };
         },
@@ -190,9 +189,14 @@
             entityTypeSelection: Object,
         },
         computed: {
+            datasetsLoaded() {
+                if (this.entityTypeSelection.dataset.timbuctoo_graphql)
+                    return this.$root.datasets.hasOwnProperty(this.entityTypeSelection.dataset.timbuctoo_graphql);
+                return false;
+            },
+
             datasets() {
-                return this.datasetsLoaded
-                    ? this.$root.getDatasets(this.entityTypeSelection.dataset.timbuctoo_graphql) : {};
+                return this.$root.getDatasets(this.entityTypeSelection.dataset.timbuctoo_graphql);
             },
 
             collections() {
@@ -328,7 +332,6 @@
             },
 
             resetDatasets() {
-                this.datasetsLoaded = false;
                 this.entityTypeSelection.dataset.dataset_id = '';
                 this.entityTypeSelection.dataset.collection_id = '';
 
@@ -348,7 +351,6 @@
 
             async loadDatasets() {
                 await this.$root.loadDatasets(this.entityTypeSelection.dataset.timbuctoo_graphql);
-                this.datasetsLoaded = true;
             },
         },
         updated() {
@@ -362,9 +364,6 @@
                 this.prevAutoLabel = this.autoLabel;
                 this.$set(this.entityTypeSelection, 'label', this.autoLabel);
             }
-
-            if (this.datasetsList.length === 0)
-                this.datasetsLoaded = false;
 
             if (this.entityTypeSelection.properties.length === 0)
                 this.entityTypeSelection.properties.push(['']);
