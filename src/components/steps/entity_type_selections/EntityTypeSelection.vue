@@ -96,14 +96,15 @@
                 </div>
 
                 <div class="smaller pt-1">
-                  <download-progress :dataset-id="entityTypeSelection.dataset.dataset_id" :collection-id="option.id"/>
+                  <download-progress :graphql-endpoint="entityTypeSelection.dataset.timbuctoo_graphql"
+                                     :dataset-id="entityTypeSelection.dataset.dataset_id" :collection-id="option.id"/>
                 </div>
               </div>
             </v-select>
 
             <small v-if="selectedCollection" class="form-text text-muted mt-2">
               Size: {{ selectedCollection.total.toLocaleString('en') }}
-              <download-progress class="ml-1"
+              <download-progress class="ml-1" :graphql-endpoint="entityTypeSelection.dataset.timbuctoo_graphql"
                                  :dataset-id="entityTypeSelection.dataset.dataset_id"
                                  :collection-id="selectedCollection.id"/>
             </small>

@@ -154,7 +154,6 @@
 </template>
 
 <script>
-    import {EventBus} from "@/eventbus";
     import props from "@/utils/props";
     import ValidationMixin from '@/mixins/ValidationMixin';
 
@@ -353,24 +352,19 @@
                     const data = await this.$root.runLinkset(this.linksetSpec.id, force);
                     if (data.result === 'exists' && confirm('This linkset already exists.\nDo you want to overwrite it with the current configuration?'))
                         await this.runLinkset(true);
-
-                    EventBus.$emit('refresh');
                 }
             },
 
             async runClustering() {
                 await this.$root.runClustering('linkset', this.linksetSpec.id);
-                EventBus.$emit('refresh');
             },
 
             async killLinkset() {
                 await this.$root.killLinkset(this.linksetSpec.id);
-                EventBus.$emit('refresh');
             },
 
             async killClustering() {
                 await this.$root.killClustering('linkset', this.linksetSpec.id);
-                EventBus.$emit('refresh');
             },
         },
         mounted() {

@@ -169,7 +169,6 @@
 
 <script>
     import Draggable from 'vuedraggable';
-    import {EventBus} from './eventbus.js';
 
     import Research from './components/steps/research/Research';
     import EntityTypeSelection from './components/steps/entity_type_selections/EntityTypeSelection';
@@ -226,6 +225,11 @@
                     || JSON.stringify(this.$root.linksetSpecs) !== JSON.stringify(this.$root.job['linkset_specs'])
                     || JSON.stringify(this.$root.lensSpecs) !== JSON.stringify(this.$root.job['lens_specs'])
                     || JSON.stringify(this.$root.views) !== JSON.stringify(this.$root.job['views']);
+            },
+
+            hasFinishedLinkset() {
+                return Boolean(this.$root.linksets.find(linkset =>
+                    linkset.status === 'done' && linkset.links_count > 0));
             },
 
             specsWithResults() {
@@ -441,59 +445,23 @@
                         else
                             this.activateStep('linksetSpecs');
 
-                        await this.refresh();
+                        await Promise.all([
+                            this.$root.loadLinksets(),
+                            this.$root.loadLenses(),
+                            this.$root.loadClusterings()
+                        ]);
+
+                        this.activateLinksetSteps();
                     }
                 }
             },
 
-            async refresh(load = false) {
-                if (load)
-                    await Promise.all([this.$root.loadLinksets(), this.$root.loadLenses(), this.$root.loadClusterings()]);
-
-                let hasFinished = false;
-                let hasUnfinished = false;
-
-                this.$root.linksets.forEach(linkset => {
-                    if (linkset.status === 'done' && linkset.links_count > 0)
-                        hasFinished = true;
-                    else if (linkset.status !== 'done' && linkset.status !== 'failed')
-                        hasUnfinished = true;
-                });
-
-                this.$root.lenses.forEach(lens => {
-                    if (lens.status !== 'done' && lens.status !== 'failed')
-                        hasUnfinished = true;
-                });
-
-                this.$root.clusterings.forEach(clustering => {
-                    if (clustering.status !== 'done' && clustering.status !== 'failed')
-                        hasUnfinished = true;
-                });
-
-                if (hasFinished) {
+            activateLinksetSteps() {
+                if (this.hasFinishedLinkset) {
                     this.activateStep('lensSpecs');
                     this.activateStep('validation');
                     this.activateStep('export');
                 }
-
-                if (hasUnfinished)
-                    setTimeout(() => {
-                        Promise.all([this.$root.loadLinksets(), this.$root.loadLenses(), this.$root.loadClusterings()])
-                            .then(() => this.refresh());
-                    }, 2000);
-            },
-
-            async refreshDownloadsInProgress(externalTrigger = false) {
-                if (externalTrigger && this.isDownloading)
-                    return;
-
-                this.isDownloading = true;
-                await this.$root.loadDownloadsInProgress();
-
-                if (this.$root.downloading.length > 0)
-                    setTimeout(_ => this.refreshDownloadsInProgress(), 2000);
-                else
-                    this.isDownloading = false;
             },
 
             async removeSpec(type, id) {
@@ -547,10 +515,12 @@
             if (jobId)
                 this.setJobId(jobId, true);
 
-            this.refreshDownloadsInProgress();
-
-            EventBus.$on('refresh', _ => this.refresh(true));
-            EventBus.$on('refreshDownloadsInProgress', _ => this.refreshDownloadsInProgress(true));
+            this.$root.resetDownloads();
+        },
+        watch: {
+            hasFinishedLinkset() {
+                this.activateLinksetSteps();
+            },
         },
     };
 </script>

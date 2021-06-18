@@ -36,7 +36,8 @@
             <ul class="font-italic text-secondary inline-list px-0">
               <li v-for="download in downloads">
                 {{ download.collection_id }}:
-                <download-progress :dataset-id="download.dataset_id" :collection-id="download.collection_id"/>
+                <download-progress :graphql-endpoint="download.graphql_endpoint"
+                                   :dataset-id="download.dataset_id" :collection-id="download.collection_id"/>
               </li>
             </ul>
           </div>
@@ -136,16 +137,9 @@
 </template>
 
 <script>
-    import {EventBus} from "@/eventbus";
-
     export default {
         name: "Status",
         props: ['linksetSpec'],
-        data() {
-            return {
-                refreshDownloadsInProgress: false,
-            };
-        },
         computed: {
             linkset() {
                 return this.$root.linksets.find(linkset => linkset.spec_id === this.linksetSpec.id);
@@ -193,11 +187,6 @@
             downloads() {
                 if (this.linksetStatus !== 'downloading')
                     return [];
-
-                if (!this.refreshDownloadsInProgress) {
-                    this.refreshDownloadsInProgress = true;
-                    EventBus.$emit('refreshDownloadsInProgress');
-                }
 
                 const datasets = [];
                 [...this.linksetSpec.sources, ...this.linksetSpec.targets].forEach(entityTypeSelectionId => {

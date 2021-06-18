@@ -103,7 +103,6 @@
 </template>
 
 <script>
-    import {EventBus} from "@/eventbus";
     import props from "@/utils/props";
     import ValidationMixin from '@/mixins/ValidationMixin';
     import LogicBox from "../../helpers/LogicBox";
@@ -214,24 +213,19 @@
                     const data = await this.$root.runLens(this.lensSpec.id, force);
                     if (data.result === 'exists' && confirm('This lens already exists.\nDo you want to overwrite it with the current configuration?'))
                         await this.runLens(true);
-
-                    EventBus.$emit('refresh');
                 }
             },
 
             async runClustering() {
                 await this.$root.runClustering('lens', this.lensSpec.id);
-                EventBus.$emit('refresh');
             },
 
             async killLens() {
                 await this.$root.killLens(this.lensSpec.id);
-                EventBus.$emit('refresh');
             },
 
             async killClustering() {
                 await this.$root.killClustering('lens', this.lensSpec.id);
-                EventBus.$emit('refresh');
             },
         },
         mounted() {

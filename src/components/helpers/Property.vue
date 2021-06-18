@@ -10,7 +10,8 @@
       <div class="property-pill property-resource read-only" :title="collection.uri" v-bind:class="{'sm': small}">
         {{ getCollectionLabel(collection, collectionId) }}
 
-        <download-progress :dataset-id="datasetId" :collection-id="collectionId" :small="true" class="pl-2"/>
+        <download-progress :graphql-endpoint="graphqlEndpoint" :dataset-id="datasetId"
+                           :collection-id="collectionId" :small="true" class="pl-2"/>
       </div>
 
       <span v-if="(!singular && !readOnly) || hasAdditionalButtons" class="property-part">
@@ -53,7 +54,8 @@
                 </div>
 
                 <div class="smaller pt-1">
-                  <download-progress :dataset-id="datasetId" :collection-id="option.label"/>
+                  <download-progress :graphql-endpoint="graphqlEndpoint" :dataset-id="datasetId"
+                                     :collection-id="option.label"/>
                 </div>
               </template>
             </div>
@@ -64,7 +66,8 @@
              :title="prop.collections[prop.collection].uri" v-bind:class="{'sm': small}">
           {{ getCollectionLabel(prop.collections[prop.collection], prop.collection) }}
 
-          <download-progress :dataset-id="datasetId" :collection-id="prop.collection" :small="true" class="pl-2"/>
+          <download-progress :graphql-endpoint="graphqlEndpoint" :dataset-id="datasetId"
+                             :collection-id="prop.collection" :small="true" class="pl-2"/>
         </div>
 
         <button v-else type="button" class="property-pill property-prop"
@@ -72,7 +75,8 @@
                 @click="resetProperty(prop.collectionIdx)">
           {{ getCollectionLabel(prop.collections[prop.collection], prop.collection) }}
 
-          <download-progress :dataset-id="datasetId" :collection-id="prop.collection" :small="true" class="pl-2"/>
+          <download-progress :graphql-endpoint="graphqlEndpoint" :dataset-id="datasetId"
+                             :collection-id="prop.collection" :small="true" class="pl-2"/>
         </button>
       </template>
 
@@ -140,7 +144,6 @@
 </template>
 
 <script>
-    import {EventBus} from "@/eventbus";
     import ValidationMixin from "@/mixins/ValidationMixin";
     import {getPropertyInfo, getPropertiesForCollection} from "@/utils/property";
 
@@ -297,7 +300,6 @@
                     this.$root.startDownload(this.datasetId, collection, this.graphqlEndpoint));
 
                 await Promise.all(downloads);
-                EventBus.$emit('refreshDownloadsInProgress');
             },
         },
     };

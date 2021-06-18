@@ -1,8 +1,10 @@
+import io from 'socket.io-client';
 import {getLenticularLensApi} from '@/utils/config';
 
 export default {
     data() {
         return {
+            socket: null,
             job: null,
             linksets: [],
             lenses: [],
@@ -611,11 +613,87 @@ export default {
             return callApi(`/download?${params.join('&')}`);
         },
 
-        async loadDownloadsInProgress() {
+        async resetDownloads() {
             const downloads = await callApi('/downloads');
             this.downloaded = downloads.downloaded;
             this.downloading = downloads.downloading;
         },
+
+        jobUpdate(data) {
+            console.log('job_update', data);
+        },
+
+        timbuctooUpdate(data) {
+            const downloadedIdx = this.downloaded.findIndex(d =>
+                d.graphql_endpoint === data.graphql_endpoint &&
+                d.dataset_id === data.dataset_id &&
+                d.collection_id === data.collection_id);
+
+            if (downloadedIdx > -1)
+                this.downloaded.splice(downloadedIdx, 1);
+
+            const downloadingIdx = this.downloading.findIndex(d =>
+                d.graphql_endpoint === data.graphql_endpoint &&
+                d.dataset_id === data.dataset_id &&
+                d.collection_id === data.collection_id);
+
+            if (downloadingIdx > -1)
+                this.downloading.splice(downloadingIdx, 1);
+
+            if (data.total === data.rows_count)
+                this.downloaded.push(data);
+            else
+                this.downloading.push(data);
+        },
+
+        async alignmentUpdate(data) {
+            if (data.spec_type === 'linkset') {
+                const linkset = this.linksets.find(linkset =>
+                    linkset.job_id === data.job_id && linkset.spec_id === data.spec_id);
+
+                if (!linkset || linkset.status !== data.status)
+                    await this.loadLinksets();
+                else {
+                    linkset.status_message = data.status_message;
+                    linkset.links_progress = data.links_progress;
+                }
+            }
+            else {
+                const lens = this.lenses.find(lens => lens.job_id === data.job_id && lens.spec_id === data.spec_id);
+                if (!lens || lens.status !== data.status)
+                    await this.loadLenses();
+                else
+                    lens.status_message = data.status_message;
+            }
+        },
+
+        async clusteringUpdate(data) {
+            const clustering = this.clusterings.find(clustering =>
+                clustering.job_id === data.job_id &&
+                clustering.spec_type === data.spec_type &&
+                clustering.spec_id === data.spec_id);
+
+            if (!clustering || clustering.status !== data.status)
+                await this.loadClusterings();
+            else {
+                clustering.status_message = data.status_message;
+                clustering.links_count = data.links_count;
+                clustering.clusters_count = data.clusters_count;
+            }
+        },
+    },
+    mounted() {
+        this.socket = io(getLenticularLensApi());
+        this.socket.on('job_update', e => this.jobUpdate(JSON.parse(e)));
+        this.socket.on('timbuctoo_update', e => this.timbuctooUpdate(JSON.parse(e)));
+        this.socket.on('alignment_update', e => this.alignmentUpdate(JSON.parse(e)));
+        this.socket.on('clustering_update', e => this.clusteringUpdate(JSON.parse(e)));
+        this.socket.on('timbuctoo_delete', _ => this.resetDownloads());
+        this.socket.on('alignment_delete', _ => this.loadLinksets() && this.loadLenses());
+        this.socket.on('clustering_delete', _ => this.loadClusterings());
+    },
+    beforeDestroy() {
+        this.socket.disconnect();
     },
 };
 

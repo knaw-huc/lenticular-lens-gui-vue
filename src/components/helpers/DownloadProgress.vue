@@ -1,6 +1,6 @@
 <template>
   <span v-if="small && downloadingInfo" class="smaller font-italic">
-    {{ downloadingInfo.rows_count }}/{{ downloadingInfo.total }}
+    {{ downloadingInfo.rows_count.toLocaleString('en') }}/{{ downloadingInfo.total.toLocaleString('en') }}
   </span>
 
   <span v-else-if="small && !downloadingInfo && !downloadedInfo" class="text-warning">
@@ -12,7 +12,7 @@
   </span>
 
   <span v-else-if="!small && downloadingInfo" class="text-secondary font-italic">
-    Downloading {{ downloadingInfo.rows_count }}/{{ downloadingInfo.total }}
+    Downloading {{ downloadingInfo.rows_count.toLocaleString('en') }}/{{ downloadingInfo.total.toLocaleString('en') }}
   </span>
 
   <span v-else-if="!small" class="text-danger">
@@ -24,9 +24,10 @@
     export default {
         name: "DownloadProgress",
         props: {
-            'datasetId': String,
-            'collectionId': String,
-            'small': {
+            graphqlEndpoint: String,
+            datasetId: String,
+            collectionId: String,
+            small: {
                 type: Boolean,
                 default: false
             },
@@ -34,12 +35,16 @@
         computed: {
             downloadedInfo() {
                 return this.$root.downloaded.find(collection =>
-                    collection.dataset_id === this.datasetId && collection.collection_id === this.collectionId);
+                    collection.graphql_endpoint === this.graphqlEndpoint &&
+                    collection.dataset_id === this.datasetId &&
+                    collection.collection_id === this.collectionId);
             },
 
             downloadingInfo() {
                 return this.$root.downloading.find(collection =>
-                    collection.dataset_id === this.datasetId && collection.collection_id === this.collectionId);
+                    collection.graphql_endpoint === this.graphqlEndpoint &&
+                    collection.dataset_id === this.datasetId &&
+                    collection.collection_id === this.collectionId);
             },
         },
     };
