@@ -101,6 +101,7 @@ export default {
                 type: type,
                 properties: [],
                 filters: [],
+                prefix_mappings: {},
             });
         },
 
@@ -365,6 +366,8 @@ export default {
                 this.views = copy(this.job.views).map(view => {
                     if (!view.created)
                         view.created = new Date().toISOString();
+                    if (!view.prefix_mappings)
+                        view.prefix_mappings = {};
                     return view;
                 });
 

@@ -58,6 +58,10 @@ $themeColor: $secondary;
   color: red;
 }
 
+.small-input {
+  max-width: 70px;
+}
+
 .absolute-handle {
   position: absolute;
   top: 8px;
@@ -100,13 +104,8 @@ div#app::before {
 }
 
 .col-export {
-  flex: 0 0 28%;
-  max-width: 28%;
-}
-
-.col-export-rdf {
-  flex: 0 0 40%;
-  max-width: 40%;
+  flex: 0 0 31%;
+  max-width: 31%;
 }
 
 .v-select {
