@@ -480,6 +480,7 @@
                 this.setJobId(jobId, true);
 
             this.$root.resetDownloads();
+            this.$root.loadMethods();
         },
         watch: {
             jobMetadata() {

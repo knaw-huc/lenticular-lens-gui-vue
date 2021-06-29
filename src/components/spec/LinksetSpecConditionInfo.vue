@@ -73,8 +73,6 @@
         name: "LinksetSpecConditionInfo",
         data() {
             return {
-                transformers: props.transformers,
-                matchingMethods: props.matchingMethods,
                 tConorms: props.tConorms,
                 visible: true,
             };
@@ -87,6 +85,14 @@
             },
         },
         computed: {
+            matchingMethods() {
+                return this.$root.methods.matching_methods;
+            },
+
+            transformers() {
+                return this.$root.methods.transformers;
+            },
+
             borderStyleClass() {
                 if (this.$parent.styleClass.includes('bg-primary-light'))
                     return 'border-primary';
@@ -102,36 +108,32 @@
             },
 
             methodValuePropsHumanReadable() {
-                return this.methodValueTemplate.items
-                    .map(item => {
-                        let value = this.condition.method_config[item.key];
+                return Object.entries(this.methodValueTemplate.items).map(([key, item]) => {
+                    let value = this.condition.method_config[key];
 
-                        if (item.choices)
-                            value = Object.keys(item.choices).find(key => item.choices[key] === value);
+                    if (item.choices)
+                        value = item.choices[value];
 
-                        if (item.label)
-                            return `<span class="text-secondary">${item.label} = ${value}</span>`;
+                    if (item.label)
+                        return `<span class="text-secondary">${item.label} = ${value}</span>`;
 
-                        return `<span class="text-secondary">${value}</span>`;
-                    })
-                    .join(' and ');
+                    return `<span class="text-secondary">${value}</span>`;
+                }).join(' and ');
             },
         },
         methods: {
             transformersHumanReadable(transformers) {
                 return transformers.map(transformer => {
                     const info = this.transformers[transformer.name];
-                    const params = info.items
-                        .map(item =>
-                            `<span class="text-secondary">${item.label} = ${transformer.parameters[item.key]}</span>`)
-                        .join(' and ');
+                    const params = Object.entries(info.items).map(([key, item]) =>
+                        `<span class="text-secondary">${item.label} = ${transformer.parameters[key]}</span>`
+                    ).join(' and ');
 
                     if (!info.items || info.items.length === 0)
                         return `<span class="text-secondary">${info.label}</span>`;
 
                     return `<span class="text-secondary">${info.label}</span> [ ${params} ]`;
-                })
-                    .join(' and ');
+                }).join(' and ');
             },
         },
     }

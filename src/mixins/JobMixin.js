@@ -15,6 +15,11 @@ export default {
             lensSpecs: [],
             views: [],
             datasets: {},
+            methods: {
+                filter_functions: {},
+                matching_methods: {},
+                transformers: {}
+            },
             downloaded: [],
             downloading: [],
         };
@@ -678,6 +683,24 @@ export default {
             const downloads = await callApi('/downloads');
             this.downloaded = downloads.downloaded;
             this.downloading = downloads.downloading;
+        },
+
+        async loadMethods() {
+            const methods = await callApi('/methods');
+            this.methods = {
+                filter_functions: methods.filter_functions_order.reduce((acc, key) => ({
+                    ...acc,
+                    [key]: methods.filter_functions[key]
+                }), {}),
+                matching_methods: methods.matching_methods_order.reduce((acc, key) => ({
+                    ...acc,
+                    [key]: methods.matching_methods[key]
+                }), {}),
+                transformers: methods.transformers_order.reduce((acc, key) => ({
+                    ...acc,
+                    [key]: methods.transformers[key]
+                }), {}),
+            };
         },
 
         timbuctooUpdate(data) {

@@ -19,13 +19,13 @@
                   v-model="condition.sim_method.name" @change="$emit('sim-method-change', $event)">
             <option disabled selected value="">Select a similarity method</option>
             <option v-for="(method, methodName) in similarityMethods" :value="methodName">
-              {{ method.description }}
+              {{ method.label }}
             </option>
           </select>
         </div>
       </div>
 
-      <condition-method v-if="simMethod.items.length > 0" :id="'sim_method_' + id"
+      <condition-method v-if="Object.keys(simMethod.items).length > 0" :id="'sim_method_' + id"
                         :method="simMethod" :config="condition.sim_method.config" ref="methodSimConfig"/>
 
       <div v-if="condition.sim_method.name" class="form-group row">
@@ -173,12 +173,6 @@
             return {
                 tNorms: props.tNorms,
                 tConorms: props.tConorms,
-                similarityMethods: Object.keys(props.matchingMethods)
-                    .filter(key => props.matchingMethods[key].isSimilarityMethod)
-                    .reduce((obj, key) => ({
-                        ...obj,
-                        [key]: props.matchingMethods[key]
-                    }), {}),
             };
         },
         props: {
@@ -192,12 +186,22 @@
             applyListMatching: Boolean,
         },
         computed: {
+            similarityMethods() {
+                return Object.keys(this.$root.methods.matching_methods)
+                    .filter(key => this.$root.methods.matching_methods[key].is_similarity_method)
+                    .reduce((obj, key) => ({
+                        ...obj,
+                        [key]: this.$root.methods.matching_methods[key]
+                    }), {});
+            },
+
             showMatchingConfig() {
-                return this.configureMatching && this.method.items.length > 0;
+                return this.configureMatching && Object.keys(this.method.items).length > 0;
             },
 
             showSimMatchingConfig() {
-                return this.applySimMethod && this.method.items.length > 0 && this.method.acceptsSimilarityMethod;
+                return this.applySimMethod && Object.keys(this.method.items).length > 0
+                    && this.method.accepts_similarity_method;
             },
 
             showLabel() {
@@ -216,8 +220,8 @@
         methods: {
             validateConditionConfiguration() {
                 const simMethodNameValid = this.validateField('sim_method_name',
-                    !(this.applySimMethod && this.method.items.length > 0
-                        && this.method.acceptsSimilarityMethod) || this.condition.sim_method.name);
+                    !(this.applySimMethod && Object.keys(this.method.items).length > 0
+                        && this.method.accepts_similarity_method) || this.condition.sim_method.name);
 
                 const methodConfigValid = this.validateField('method_config',
                     this.$refs.methodConfig ? this.$refs.methodConfig.validateConditionMethod() : true);

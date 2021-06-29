@@ -16,26 +16,26 @@
       </div>
     </div>
 
-    <div v-if="template.items.length > 0" class="col-auto pr-0 form-inline">
-      <template v-for="item in template.items">
+    <div v-if="Object.keys(template.items).length > 0" class="col-auto pr-0 form-inline">
+      <template v-for="(item, key) in template.items">
         <div v-if="item.type === 'boolean'" class="form-check">
-          <input class="form-check-input" type="checkbox" :id="`tr_${item.key}_${id}`"
-                 v-model="transformer.parameters[item.key]"
-                 v-bind:class="{'is-invalid': errors.includes(`transformer_value_${item.key}`)}">
+          <input class="form-check-input" type="checkbox" :id="`tr_${key}_${id}`"
+                 v-model="transformer.parameters[key]"
+                 v-bind:class="{'is-invalid': errors.includes(`transformer_value_${key}`)}">
 
-          <label class="form-check-label small" :for="`tr_${item.key}_${id}`">
+          <label class="form-check-label small" :for="`tr_${key}_${id}`">
             {{ item.label }}
           </label>
         </div>
 
         <template v-else-if="item.type === 'choices'">
-          <label v-if="item.label" class="small mr-2" :for="`tr_${item.key}_${id}`">
+          <label v-if="item.label" class="small mr-2" :for="`tr_${key}_${id}`">
             {{ item.label }}
           </label>
 
-          <select :id="`tr_${item.key}_${id}`" class="form-control form-control-sm mr-2 h-auto"
-                  v-model="transformer.parameters[item.key]"
-                  v-bind:class="{'is-invalid': errors.includes(`transformer_value_${item.key}`)}">
+          <select :id="`tr_${key}_${id}`" class="form-control form-control-sm mr-2 h-auto"
+                  v-model="transformer.parameters[key]"
+                  v-bind:class="{'is-invalid': errors.includes(`transformer_value_${key}`)}">
             <option disabled selected value="">Select an option</option>
             <option v-for="(choiceLabel, choiceValue) in item.choices" :value="choiceValue">
               {{ choiceLabel }}
@@ -44,24 +44,24 @@
         </template>
 
         <b-form-tags v-else-if="item.type === 'tags'"
-                     :id="`tr_${item.key}_${id}`" separator=" " :placeholder="item.label || 'Specify tags'"
-                     v-model="transformer.parameters[item.key]" size="sm" class="tags-size" remove-on-delete
-                     v-bind:class="{'is-invalid': errors.includes(`transformer_value_${item.key}`)}"/>
+                     :id="`tr_${key}_${id}`" separator=" " :placeholder="item.label || 'Specify tags'"
+                     v-model="transformer.parameters[key]" size="sm" class="tags-size mr-2" remove-on-delete
+                     v-bind:class="{'is-invalid': errors.includes(`transformer_value_${key}`)}"/>
 
         <template v-else>
-          <label v-if="item.label" class="small mr-2" :for="`tr_${item.key}_${id}`">
+          <label v-if="item.label" class="small mr-2" :for="`tr_${key}_${id}`">
             {{ item.label }}
           </label>
 
-          <input class="form-control form-control-sm mr-2" :id="`tr_${item.key}_${id}`"
-                 v-model="transformer.parameters[item.key]"
+          <input class="form-control form-control-sm mr-2" :id="`tr_${key}_${id}`"
+                 v-model="transformer.parameters[key]"
                  v-bind:class="{'w-text': item.size !== 'small' && item.size !== 'large',
                                   'w-small-text': item.size === 'small', 'w-large-text':  item.size === 'large',
-                                  'is-invalid': errors.includes(`transformer_value_${item.key}`)}">
+                                  'is-invalid': errors.includes(`transformer_value_${key}`)}">
         </template>
 
         <div class="invalid-feedback inline-feedback mr-2"
-             v-show="errors.includes(`transformer_value_${item.key}`)">
+             v-show="errors.includes(`transformer_value_${key}`)">
           Please specify a valid value
         </div>
       </template>
@@ -74,19 +74,17 @@
 </template>
 
 <script>
-    import props from "@/utils/props";
     import ValidationMixin from "@/mixins/ValidationMixin";
 
     export default {
         name: "Transformer",
         mixins: [ValidationMixin],
-        data() {
-            return {
-                availableTransformers: props.transformers,
-            };
-        },
         props: ['id', 'transformer'],
         computed: {
+            availableTransformers() {
+                return this.$root.methods.transformers;
+            },
+
             template() {
                 if (this.availableTransformers.hasOwnProperty(this.transformer.name))
                     return this.availableTransformers[this.transformer.name];
@@ -101,16 +99,16 @@
                     return false;
 
                 let transformerValid = true;
-                this.template.items.forEach(transformerItem => {
-                    const field = `transformer_value_${transformerItem.key}`;
-                    const value = this.transformer.parameters[transformerItem.key];
+                Object.entries(this.template.items).forEach(([key, transformerItem]) => {
+                    const field = `transformer_value_${key}`;
+                    const value = this.transformer.parameters[key];
 
                     let isValid = true;
                     switch (transformerItem.type) {
                         case 'string':
                         case 'choices':
                         case 'tags':
-                            isValid = transformerItem.allowEmptyValue || (value && value.length > 0);
+                            isValid = transformerItem.allow_empty_value || (value && value.length > 0);
                             break;
                     }
 
@@ -123,8 +121,8 @@
 
             handleTransformerIndexChange() {
                 this.transformer.parameters = {};
-                this.template.items.forEach(valueItem => {
-                    this.transformer.parameters[valueItem.key] = valueItem.defaultValue;
+                Object.entries(this.template.items).forEach(([key, valueItem]) => {
+                    this.transformer.parameters[key] = valueItem.default_value;
                 });
             },
         },

@@ -11,19 +11,19 @@
                       v-bind:class="{'is-invalid': errors.includes('method_name')}">
             <option disabled selected value="">Select a method</option>
             <option v-for="(method, methodName) in matchingMethods" :value="methodName">
-              {{ method.description }}
+              {{ method.label }}
             </option>
           </select-box>
 
           <div class="input-group-append">
             <div class="btn-group btn-group-toggle">
-              <label v-if="method.items.length > 0" class="btn btn-secondary btn-sm"
+              <label v-if="Object.keys(method.items).length > 0" class="btn btn-secondary btn-sm"
                      v-bind:class="{'active': configureMatching}" @click="configureMatching = !configureMatching">
                 Configure
               </label>
 
-              <label v-if="method.items.length > 0 && method.acceptsSimilarityMethod" class="btn btn-secondary btn-sm"
-                     v-bind:class="{'active': applySimMethod}">
+              <label v-if="Object.keys(method.items).length > 0 && method.accepts_similarity_method"
+                     class="btn btn-secondary btn-sm" v-bind:class="{'active': applySimMethod}">
                 <input type="checkbox" autocomplete="off" v-model="applySimMethod"/>
                 Apply similarity method
               </label>
@@ -119,7 +119,6 @@
 <script>
     import Draggable from 'vuedraggable';
 
-    import props from "@/utils/props";
     import ValidationMixin from "@/mixins/ValidationMixin";
 
     import ConditionConfiguration from "./ConditionConfiguration";
@@ -141,7 +140,6 @@
                 configureMatching: true,
                 applySimMethod: false,
                 applyListMatching: false,
-                matchingMethods: props.matchingMethods,
             };
         },
         props: {
@@ -150,22 +148,26 @@
             useFuzzyLogic: Boolean,
         },
         computed: {
+            matchingMethods() {
+                return this.$root.methods.matching_methods;
+            },
+
             method() {
                 if (this.condition.method.name && this.matchingMethods.hasOwnProperty(this.condition.method.name))
                     return this.matchingMethods[this.condition.method.name];
 
-                return {description: '', acceptSimilarityMethod: false, isSimilarityMethod: false, items: []};
+                return {label: '', accepts_similarity_method: false, is_similarity_method: false, items: {}};
             },
 
             simMethod() {
                 if (this.condition.sim_method.name && this.matchingMethods.hasOwnProperty(this.condition.sim_method.name))
                     return this.matchingMethods[this.condition.sim_method.name];
 
-                return {description: '', acceptSimilarityMethod: false, isSimilarityMethod: false, items: []};
+                return {label: '', accepts_similarity_method: false, is_similarity_method: false, items: {}};
             },
 
             allowFuzzyLogic() {
-                return this.useFuzzyLogic && (this.method.isSimilarityMethod || this.simMethod.isSimilarityMethod);
+                return this.useFuzzyLogic && (this.method.is_similarity_method || this.simMethod.is_similarity_method);
             },
 
             unusedEntityTypeSelections() {
@@ -181,8 +183,9 @@
             },
 
             showConfiguration() {
-                return (this.configureMatching && this.method.items.length > 0) ||
-                    (this.applySimMethod && this.method.items.length > 0 && this.method.acceptsSimilarityMethod) ||
+                return (this.configureMatching && Object.keys(this.method.items).length > 0) ||
+                    (this.applySimMethod && Object.keys(this.method.items).length > 0
+                        && this.method.accepts_similarity_method) ||
                     this.applyListMatching;
             },
         },
@@ -217,14 +220,14 @@
                 this.$set(this.condition.method, 'config', {});
                 this.$set(this.condition.sim_method, 'name', null);
                 this.$set(this.condition.sim_method, 'config', {});
-                this.method.items.forEach(item =>
-                    this.$set(this.condition.method.config, item.key, item.defaultValue));
+                Object.entries(this.method.items).forEach(([key, item]) =>
+                    this.$set(this.condition.method.config, key, item.default_value));
             },
 
             handleSimMethodChange() {
                 this.$set(this.condition.sim_method, 'config', {});
-                this.simMethod.items.forEach(item =>
-                    this.$set(this.condition.sim_method.config, item.key, item.defaultValue));
+                Object.entries(this.simMethod.items).forEach(([key, item]) =>
+                    this.$set(this.condition.sim_method.config, key, item.default_value));
             },
 
             addProperty(key, etsId, index) {
