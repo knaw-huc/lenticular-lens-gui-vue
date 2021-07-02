@@ -11,7 +11,7 @@
       <button type="button" aria-label="Close" class="close modal-header-close" @click="close()">×</button>
     </template>
 
-    <sub-card label="Metadata prefix mappings" size="xs" :is-first="true">
+    <sub-card label="Predicate prefix mappings" size="xs" :is-first="true">
       <prefix-mapping v-for="(mapping, idx) in metadataMappings"
                       :key="`p${idx}`"
                       :mapping="mapping"
@@ -80,9 +80,9 @@
                     prefix,
                     uri: this.alignment.uri_prefix_mappings[prefix],
                     allowUriUpdate: false,
-                })).concat(this.alignment.uri_prefixes.map(uri => ({
-                    prefix: '',
-                    uri,
+                })).concat(Object.keys(this.alignment.dynamic_uri_prefix_mappings).map(prefix => ({
+                    prefix,
+                    uri: this.alignment.dynamic_uri_prefix_mappings[prefix],
                     allowUriUpdate: true,
                 })));
 

@@ -6,7 +6,7 @@
       <span v-else class="text-secondary">{{ mapping.prefix }}</span>
     </div>
 
-    <div class="col-7">
+    <div class="col-7 text-break">
       <input v-if="mapping.allowUriUpdate && isEditing" class="form-control form-control-sm" type="text"
              v-model="uri" placeholder="Enter an uri"/>
       <span v-else>{{ mapping.uri }}</span>
