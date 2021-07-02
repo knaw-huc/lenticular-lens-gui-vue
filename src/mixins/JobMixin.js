@@ -76,7 +76,6 @@ export default {
                 use_counter: true,
                 sources: [],
                 targets: [],
-                threshold: 0,
                 methods: {
                     type: 'AND',
                     conditions: [],

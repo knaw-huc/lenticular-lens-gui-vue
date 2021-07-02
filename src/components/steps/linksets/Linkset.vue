@@ -155,17 +155,16 @@
 
 <script>
     import props from "@/utils/props";
+    import LogicBox from "@/components/helpers/LogicBox";
     import ValidationMixin from '@/mixins/ValidationMixin';
 
-    import LinksetSpecSourcesInfo from '../../info/LinksetSpecSourcesInfo';
-    import LinksetSpecTargetsInfo from '../../info/LinksetSpecTargetsInfo';
-    import MatchingMethodsInfo from '../../info/MatchingMethodsInfo';
+    import LinksetSpecSourcesInfo from '@/components/info/LinksetSpecSourcesInfo';
+    import LinksetSpecTargetsInfo from '@/components/info/LinksetSpecTargetsInfo';
+    import MatchingMethodsInfo from '@/components/info/MatchingMethodsInfo';
 
     import Status from "./Status";
     import Condition from "./Condition";
     import EntityTypeSelection from "./EntityTypeSelection";
-
-    import LogicBox from "../../helpers/LogicBox";
 
     export default {
         name: "Linkset",

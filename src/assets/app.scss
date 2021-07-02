@@ -68,6 +68,12 @@ $themeColor: $secondary;
   left: 8px;
 }
 
+.absolute-handle-right {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
 div#app::before {
   position: absolute;
   content: '';
@@ -138,6 +144,11 @@ div#app::before {
 
 .vs__dropdown-toggle {
   background-color: white;
+}
+
+.btn-secondary-popup a.btn.disabled,
+fieldset:disabled .btn-secondary-popup a.btn {
+  pointer-events: auto;
 }
 
 .vue-form-wizard {
@@ -254,6 +265,16 @@ div#app::before {
   overflow: auto;
 }
 
+.handle {
+  cursor: pointer;
+  color: grey;
+}
+
+.big-spinner {
+  width: 3rem;
+  height: 3rem;
+}
+
 .invalid-feedback {
   &.inline-feedback {
     width: auto;
@@ -298,6 +319,12 @@ ul.inline-list li {
 .motivation {
   width: 300px !important;
   height: 120px !important;
+}
+
+.spec-info {
+  position: relative;
+  font-size: 0.875rem;
+  min-height: 40px;
 }
 
 .main-card {

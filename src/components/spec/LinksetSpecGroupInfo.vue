@@ -1,38 +1,18 @@
 <template>
-  <div v-if="methodGroup.conditions" class="border p-2" v-bind:class="styleClass">
-    <div class="row align-items-baseline justify-content-between">
-      <div class="col-auto">
-        <p class="font-italic smaller border rounded bg-opacity pointer m-0 px-2"
-           v-bind:class="borderStyleClass" @click="visible = !visible">
-          <fa-icon icon="chevron-down" size="xs" :class="visible ? null : 'collapsed'"></fa-icon>
-          Open / close
-        </p>
-      </div>
+  <div class="spec-info border p-2" v-bind:class="styleClass">
+    <p class="absolute-handle-right font-italic smaller border rounded bg-opacity pointer m-0 px-2"
+       v-bind:class="borderStyleClass" @click="visible = !visible">
+      <fa-icon icon="chevron-down" size="xs" :class="visible ? null : 'collapsed'"></fa-icon>
+      {{ visible ? 'Close' : 'Open' }}
+    </p>
 
-      <div v-if="overrideFuzzyLogic" class="col-auto">
-        <label class="font-weight-bold smaller m-0">
-          Override {{ isConjunction ? 't-norm' : 't-conorm' }}:
-
-          <select class="font-italic smaller border rounded bg-opacity pl-1 ml-1"
-                  v-bind:class="borderStyleClass">
-            <option value="" selected>Do not override</option>
-            <template v-if="isConjunction">
-              <option v-for="(label, value) in tNorms" :value="value">{{ label }}</option>
-            </template>
-            <template v-else>
-              <option v-for="(label, value) in tConorms" :value="value">{{ label }}</option>
-            </template>
-          </select>
-        </label>
-      </div>
-    </div>
-
-    <b-collapse v-model="visible" class="mt-1">
+    <b-collapse v-model="visible">
       <p v-if="isLinksetRoot" class="font-weight-bold mb-1">Matching</p>
 
       <template v-for="(condition, idx) in methodGroup.conditions">
-        <linkset-spec-group-info :method-group="condition" :key="idx"
-                                 :is-root="false" :is-linkset-root="false" :override-fuzzy-logic="overrideFuzzyLogic"/>
+        <linkset-spec-group-info v-if="condition.conditions"
+                                 :method-group="condition" :key="idx" :is-root="false" :is-linkset-root="false"/>
+        <linkset-spec-condition-info v-else :condition="condition" :using-fuzzy-logic="usingFuzzyLogic"/>
 
         <p v-if="idx < (methodGroup.conditions.length - 1) && usingFuzzyLogic" class="font-weight-bold my-2">
           <span class="text-secondary">
@@ -42,6 +22,10 @@
           <span class="text-secondary">
             {{ {...tNorms, ...tConorms}[methodGroup.type] }}
           </span>
+          <template v-if="methodGroup.threshold">
+            having a threshold of
+            <span class="text-secondary">{{ methodGroup.threshold }}</span>
+          </template>
         </p>
 
         <p v-else-if="idx < (methodGroup.conditions.length - 1)" class="font-weight-bold my-2 text-secondary">
@@ -50,9 +34,6 @@
       </template>
     </b-collapse>
   </div>
-
-  <linkset-spec-condition-info v-else :condition="methodGroup" v-bind:class="styleClass"
-                               :override-fuzzy-logic="overrideFuzzyLogic"/>
 </template>
 
 <script>
@@ -77,10 +58,6 @@
             isLinksetRoot: {
                 type: Boolean,
                 default: true,
-            },
-            overrideFuzzyLogic: {
-                type: Boolean,
-                default: false,
             },
         },
         data() {

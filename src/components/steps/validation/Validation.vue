@@ -622,7 +622,7 @@
                     notValidated: this.showNotValidatedLinks, mixed: this.showMixedLinks,
                     clusterIds: this.clusterIds, min: this.similarityRange[0], max: this.similarityRange[1],
                     sort: this.sortDesc ? 'desc' : 'asc'
-                }, 50, this.links.length);
+                }, 20, this.links.length);
 
                 if (links !== null)
                     this.links.push(...links);

@@ -96,7 +96,7 @@
 
 <script>
     import Draggable from 'vuedraggable';
-    import ValidationMixin from "../../mixins/ValidationMixin";
+    import ValidationMixin from "@/mixins/ValidationMixin";
 
     export default {
         name: "LogicBox",

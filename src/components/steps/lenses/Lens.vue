@@ -104,8 +104,8 @@
 
 <script>
     import props from "@/utils/props";
+    import LogicBox from "@/components/helpers/LogicBox";
     import ValidationMixin from '@/mixins/ValidationMixin';
-    import LogicBox from "../../helpers/LogicBox";
 
     import Status from "./Status";
     import LensElement from "./LensElement";

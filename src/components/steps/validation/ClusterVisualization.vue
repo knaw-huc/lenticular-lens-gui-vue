@@ -34,9 +34,9 @@
 </template>
 
 <script>
-    import ClusterVisualizationInfo from '../../info/ClusterVisualizationInfo';
-    import ClusterVisualizationCompactInfo from '../../info/ClusterVisualizationCompactInfo';
-    import ClusterVisualizationReconciledInfo from '../../info/ClusterVisualizationReconciledInfo';
+    import ClusterVisualizationInfo from '@/components/info/ClusterVisualizationInfo';
+    import ClusterVisualizationCompactInfo from '@/components/info/ClusterVisualizationCompactInfo';
+    import ClusterVisualizationReconciledInfo from '@/components/info/ClusterVisualizationReconciledInfo';
 
     import {draw} from '@/utils/visualization';
 

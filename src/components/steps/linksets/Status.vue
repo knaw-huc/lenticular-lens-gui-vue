@@ -2,7 +2,7 @@
   <sub-card :is-first="true" class="small">
     <div class="row align-items-center justify-content-center">
       <div v-if="running" class="col-auto">
-        <loading :small="true"/>
+        <loading/>
       </div>
 
       <div v-if="failed" class="col-auto">

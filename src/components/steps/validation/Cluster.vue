@@ -154,7 +154,7 @@
 </template>
 
 <script>
-    import PropertyValues from "../../helpers/PropertyValues";
+    import PropertyValues from "@/components/helpers/PropertyValues";
 
     export default {
         name: "Cluster",

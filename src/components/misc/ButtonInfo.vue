@@ -35,10 +35,3 @@
         },
     }
 </script>
-
-<style>
-  .btn-secondary-popup a.btn.disabled,
-  fieldset:disabled .btn-secondary-popup a.btn {
-    pointer-events: auto;
-  }
-</style>

@@ -41,14 +41,10 @@
 </template>
 
 <script>
-    import ValidationMixin from "../../../mixins/ValidationMixin";
-    import SpecInfo from "../../spec/SpecInfo";
+    import ValidationMixin from "@/mixins/ValidationMixin";
 
     export default {
         name: "LensElement",
-        components: {
-            SpecInfo
-        },
         mixins: [ValidationMixin],
         props: ['type', 'element', 'index', 'disabled'],
         data() {
