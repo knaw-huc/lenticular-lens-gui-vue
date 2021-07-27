@@ -213,19 +213,12 @@
         </button>
       </sub-card>
 
-      <sub-card label="RDF Metadata" class="col-export">
+      <sub-card label="RDF metadata" class="col-export">
         <div class="form-group mt-3">
           <label :for="`creator_${type}_${spec.id}`">Creator:</label>
 
           <input type="text" class="form-control form-control-sm" :id="`creator_${type}_${spec.id}`"
                  v-model="creator" :disabled="format === 'csv'"/>
-        </div>
-
-        <div class="form-group mt-3">
-          <label :for="`publisher_${type}_${spec.id}`">Publisher:</label>
-
-          <input type="text" class="form-control form-control-sm" :id="`publisher_${type}_${spec.id}`"
-                 v-model="publisher" :disabled="format === 'csv'"/>
         </div>
       </sub-card>
     </div>
@@ -291,7 +284,6 @@
                 uri: linkPredicates[0].uri,
                 predicate: linkPredicates[0].predicate,
                 creator: null,
-                publisher: null,
             }
         },
         props: {
@@ -437,7 +429,6 @@
                 params.push(`link_pred_shortname=${encodeURIComponent(this.prefix + ':' + this.predicate)}`);
 
                 if (this.creator) params.push(`creator=${encodeURIComponent(this.creator)}`);
-                if (this.publisher) params.push(`publisher=${encodeURIComponent(this.publisher)}`);
 
                 return this.$root.getExportRdfLink(this.type, this.spec.id, params);
             }
