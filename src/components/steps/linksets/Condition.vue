@@ -10,19 +10,19 @@
           <select-box v-model="condition.method.name" @input="handleMethodChange"
                       v-bind:class="{'is-invalid': errors.includes('method_name')}">
             <option disabled selected value="">Select a method</option>
-            <option v-for="(method, methodName) in matchingMethods" :value="methodName">
-              {{ method.label }}
+            <option v-for="methodName in matchingMethods.keys()" :value="methodName">
+              {{ matchingMethods.get(methodName).label }}
             </option>
           </select-box>
 
           <div class="input-group-append">
             <div class="btn-group btn-group-toggle">
-              <label v-if="Object.keys(method.items).length > 0" class="btn btn-secondary btn-sm"
+              <label v-if="method.items.size > 0" class="btn btn-secondary btn-sm"
                      v-bind:class="{'active': configureMatching}" @click="configureMatching = !configureMatching">
                 Configure
               </label>
 
-              <label v-if="Object.keys(method.items).length > 0 && method.accepts_similarity_method"
+              <label v-if="method.items.size > 0 && method.accepts_similarity_method"
                      class="btn btn-secondary btn-sm" v-bind:class="{'active': applySimMethod}">
                 <input type="checkbox" autocomplete="off" v-model="applySimMethod"/>
                 Apply similarity method
@@ -153,17 +153,17 @@
             },
 
             method() {
-                if (this.condition.method.name && this.matchingMethods.hasOwnProperty(this.condition.method.name))
-                    return this.matchingMethods[this.condition.method.name];
+                if (this.condition.method.name && this.matchingMethods.has(this.condition.method.name))
+                    return this.matchingMethods.get(this.condition.method.name);
 
-                return {label: '', accepts_similarity_method: false, is_similarity_method: false, items: {}};
+                return {label: '', accepts_similarity_method: false, is_similarity_method: false, items: new Map()};
             },
 
             simMethod() {
-                if (this.condition.sim_method.name && this.matchingMethods.hasOwnProperty(this.condition.sim_method.name))
-                    return this.matchingMethods[this.condition.sim_method.name];
+                if (this.condition.sim_method.name && this.matchingMethods.has(this.condition.sim_method.name))
+                    return this.matchingMethods.get(this.condition.sim_method.name);
 
-                return {label: '', accepts_similarity_method: false, is_similarity_method: false, items: {}};
+                return {label: '', accepts_similarity_method: false, is_similarity_method: false, items: new Map()};
             },
 
             allowFuzzyLogic() {
@@ -183,9 +183,8 @@
             },
 
             showConfiguration() {
-                return (this.configureMatching && Object.keys(this.method.items).length > 0) ||
-                    (this.applySimMethod && Object.keys(this.method.items).length > 0
-                        && this.method.accepts_similarity_method) ||
+                return (this.configureMatching && this.method.items.size > 0) ||
+                    (this.applySimMethod && this.method.items.size > 0 && this.method.accepts_similarity_method) ||
                     this.applyListMatching;
             },
         },
@@ -220,13 +219,13 @@
                 this.$set(this.condition.method, 'config', {});
                 this.$set(this.condition.sim_method, 'name', null);
                 this.$set(this.condition.sim_method, 'config', {});
-                Object.entries(this.method.items).forEach(([key, item]) =>
+                this.method.items.forEach((item, key) =>
                     this.$set(this.condition.method.config, key, item.default_value));
             },
 
             handleSimMethodChange() {
                 this.$set(this.condition.sim_method, 'config', {});
-                Object.entries(this.simMethod.items).forEach(([key, item]) =>
+                this.simMethod.items.forEach((item, key) =>
                     this.$set(this.condition.sim_method.config, key, item.default_value));
             },
 

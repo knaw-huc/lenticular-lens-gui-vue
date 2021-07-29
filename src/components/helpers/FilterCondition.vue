@@ -28,8 +28,8 @@
         <select-box :auto-height="false" v-model="condition.type" @input="onTypeSelection"
                     v-bind:class="{'is-invalid': errors.includes('condition')}">
           <option value="" disabled selected>Choose a filter type</option>
-          <option v-for="(filterFunction, value) in filterFunctions" :value="value">
-            {{ filterFunction.label }}
+          <option v-for="key in filterFunctions.keys()" :value="key">
+            {{ filterFunctions.get(key).label }}
           </option>
         </select-box>
       </div>
@@ -107,8 +107,8 @@
             },
 
             selectedFilterFunction() {
-                if (this.filterFunctions.hasOwnProperty(this.condition.type))
-                    return this.filterFunctions[this.condition.type];
+                if (this.filterFunctions.has(this.condition.type))
+                    return this.filterFunctions.get(this.condition.type);
 
                 return {label: ''};
             },

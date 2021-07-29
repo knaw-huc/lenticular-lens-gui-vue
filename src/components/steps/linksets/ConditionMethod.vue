@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-for="(item, key, idx) in this.method.items"
+    <div v-for="([key, item], idx) in method.items.entries()"
          v-if="item.type !== 'property' || config[item.entity_type_selection_key] !== undefined" class="form-group row">
       <label v-if="showLabel(item)" :for="id + idx" class="col-sm-3 col-form-label">{{ item.label }}</label>
 
@@ -103,7 +103,7 @@
                 let methodValueValid = true;
 
                 this.errors = this.errors.filter(err => !err.startsWith('method_config_'));
-                Object.entries(this.method.items).forEach(([key, valueItem]) => {
+                this.method.items.forEach((valueItem, key) => {
                     const value = this.config[key];
 
                     const valueValid = !this.isInvalidMinValue(valueItem, value)

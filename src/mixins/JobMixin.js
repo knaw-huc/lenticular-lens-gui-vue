@@ -687,18 +687,34 @@ export default {
         async loadMethods() {
             const methods = await callApi('/methods');
             this.methods = {
-                filter_functions: methods.filter_functions_order.reduce((acc, key) => ({
-                    ...acc,
-                    [key]: methods.filter_functions[key]
-                }), {}),
-                matching_methods: methods.matching_methods_order.reduce((acc, key) => ({
-                    ...acc,
-                    [key]: methods.matching_methods[key]
-                }), {}),
-                transformers: methods.transformers_order.reduce((acc, key) => ({
-                    ...acc,
-                    [key]: methods.transformers[key]
-                }), {}),
+                filter_functions: methods.filter_functions_order.reduce((acc, key) => {
+                    acc.set(key, methods.filter_functions[key]);
+                    return acc;
+                }, new Map()),
+                matching_methods: methods.matching_methods_order.reduce((acc, key) => {
+                    const matchingMethodInfo = {
+                        ...methods.matching_methods[key],
+                        items: methods.matching_methods[key].items_order.reduce((acc, itemsKey) => {
+                            acc.set(itemsKey, methods.matching_methods[key].items[itemsKey]);
+                            return acc;
+                        }, new Map())
+                    };
+                    delete matchingMethodInfo.items_order;
+                    acc.set(key, matchingMethodInfo);
+                    return acc;
+                }, new Map()),
+                transformers: methods.transformers_order.reduce((acc, key) => {
+                    const transformerInfo = {
+                        ...methods.transformers[key],
+                        items: methods.transformers[key].items_order.reduce((acc, itemsKey) => {
+                            acc.set(itemsKey, methods.transformers[key].items[itemsKey]);
+                            return acc;
+                        }, new Map())
+                    };
+                    delete transformerInfo.items_order;
+                    acc.set(key, transformerInfo);
+                    return acc;
+                }, new Map()),
             };
         },
 

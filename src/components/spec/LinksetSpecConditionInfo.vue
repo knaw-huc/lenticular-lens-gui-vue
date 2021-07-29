@@ -127,17 +127,17 @@
             },
 
             method() {
-                if (this.condition.method.name && this.matchingMethods.hasOwnProperty(this.condition.method.name))
-                    return this.matchingMethods[this.condition.method.name];
+                if (this.condition.method.name && this.matchingMethods.has(this.condition.method.name))
+                    return this.matchingMethods.get(this.condition.method.name);
 
-                return {label: '', items: {}};
+                return {label: '', items: new Map()};
             },
 
             simMethod() {
-                if (this.condition.sim_method.name && this.matchingMethods.hasOwnProperty(this.condition.sim_method.name))
-                    return this.matchingMethods[this.condition.sim_method.name];
+                if (this.condition.sim_method.name && this.matchingMethods.has(this.condition.sim_method.name))
+                    return this.matchingMethods.get(this.condition.sim_method.name);
 
-                return {label: '', items: {}};
+                return {label: '', items: new Map()};
             },
 
             methodValuePropsHumanReadable() {
@@ -150,7 +150,7 @@
 
             conditionHumanReadable() {
                 let html = `using <span class="text-secondary">${this.method.label}</span>`;
-                if (Object.keys(this.method.items).length > 0)
+                if (this.method.items.size > 0)
                     html += ` [ ${this.methodValuePropsHumanReadable} ]`;
 
                 if (this.simMethod.label) {
@@ -158,7 +158,7 @@
                         html += ' not';
 
                     html += ` normalized with <span class="text-secondary">${this.simMethod.label}</span>`;
-                    if (Object.keys(this.simMethod.items).length > 0)
+                    if (this.simMethod.items.size > 0)
                         html += ` [ ${this.simMethodValuePropsHumanReadable} ]`;
                 }
 
@@ -197,9 +197,10 @@
         },
         methods: {
             methodConfigHumanReadable(items, config) {
-                return Object.entries(items)
-                    .filter(([key]) => !['entity_type_selection', 'property'].includes(key))
-                    .map(([key, item]) => {
+                return Array.from(items.keys())
+                    .filter(key => !['entity_type_selection', 'property'].includes(key))
+                    .map(key => {
+                        const item = items.get(key);
                         const value = (item.type === 'choices') ? item.choices[config[key]] : config[key];
                         if (item.label)
                             return `<span class="text-secondary">${item.label}</span> = `
@@ -211,13 +212,13 @@
 
             transformersHumanReadable(transformers) {
                 return transformers.map(transformer => {
-                    const info = this.transformers[transformer.name];
-                    const params = Object.entries(info.items).map(([key, item]) =>
-                        `<span class="text-secondary">${item.label}</span> = ` +
+                    const info = this.transformers.get(transformer.name);
+                    const params = Array.from(info.items.keys()).map(key =>
+                        `<span class="text-secondary">${info.items.get(key).label}</span> = ` +
                         `<span class="text-secondary">${transformer.parameters[key]}</span>`
                     ).join(' and ');
 
-                    if (!info.items || info.items.length === 0)
+                    if (info.items.size === 0)
                         return `<span class="text-secondary">${info.label}</span>`;
 
                     return `<span class="text-secondary">${info.label}</span> [ ${params} ]`;

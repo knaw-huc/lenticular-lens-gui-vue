@@ -18,14 +18,14 @@
                   v-bind:class="{'is-invalid': errors.includes('sim_method_name')}"
                   v-model="condition.sim_method.name" @change="$emit('sim-method-change', $event)">
             <option disabled selected value="">Select a similarity method</option>
-            <option v-for="(method, methodName) in similarityMethods" :value="methodName">
-              {{ method.label }}
+            <option v-for="methodName in similarityMethods.keys()" :value="methodName">
+              {{ similarityMethods.get(methodName).label }}
             </option>
           </select>
         </div>
       </div>
 
-      <condition-method v-if="Object.keys(simMethod.items).length > 0" :id="'sim_method_' + id"
+      <condition-method v-if="simMethod.items.size > 0" :id="'sim_method_' + id"
                         :method="simMethod" :config="condition.sim_method.config" ref="methodSimConfig"/>
 
       <div v-if="condition.sim_method.name" class="form-group row">
@@ -187,21 +187,20 @@
         },
         computed: {
             similarityMethods() {
-                return Object.keys(this.$root.methods.matching_methods)
-                    .filter(key => this.$root.methods.matching_methods[key].is_similarity_method)
-                    .reduce((obj, key) => ({
-                        ...obj,
-                        [key]: this.$root.methods.matching_methods[key]
-                    }), {});
+                return Array.from(this.$root.methods.matching_methods.keys())
+                    .filter(key => this.$root.methods.matching_methods.get(key).is_similarity_method)
+                    .reduce((obj, key) => {
+                        obj.set(key, this.$root.methods.matching_methods.get(key));
+                        return obj;
+                    }, new Map());
             },
 
             showMatchingConfig() {
-                return this.configureMatching && Object.keys(this.method.items).length > 0;
+                return this.configureMatching && this.method.items.size > 0;
             },
 
             showSimMatchingConfig() {
-                return this.applySimMethod && Object.keys(this.method.items).length > 0
-                    && this.method.accepts_similarity_method;
+                return this.applySimMethod && this.method.items.size > 0 && this.method.accepts_similarity_method;
             },
 
             showLabel() {
@@ -220,7 +219,7 @@
         methods: {
             validateConditionConfiguration() {
                 const simMethodNameValid = this.validateField('sim_method_name',
-                    !(this.applySimMethod && Object.keys(this.method.items).length > 0
+                    !(this.applySimMethod && this.method.items.size > 0
                         && this.method.accepts_similarity_method) || this.condition.sim_method.name);
 
                 const methodConfigValid = this.validateField('method_config',

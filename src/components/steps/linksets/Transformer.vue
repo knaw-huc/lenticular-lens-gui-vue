@@ -8,7 +8,9 @@
       <select-box v-model="transformer.name" @input="handleTransformerIndexChange()"
                   v-bind:class="{'is-invalid': errors.includes('transformer')}">
         <option disabled selected value="">Select a transformer</option>
-        <option v-for="(obj, name) in availableTransformers" :value="name">{{ obj.label }}</option>
+        <option v-for="name in availableTransformers.keys()" :value="name">
+          {{ availableTransformers.get(name).label }}
+        </option>
       </select-box>
 
       <div class="invalid-feedback inline-feedback ml-2" v-show="errors.includes('transformer')">
@@ -16,10 +18,10 @@
       </div>
     </div>
 
-    <div v-if="Object.keys(template.items).length > 0" class="col-auto pr-0 form-inline">
-      <template v-for="(item, key) in template.items">
+    <div v-if="template.items.size > 0" class="col-auto pr-0 form-inline">
+      <template v-for="[key, item] in template.items.entries()">
         <div v-if="item.type === 'boolean'" class="form-check">
-          <input class="form-check-input" type="checkbox" :id="`tr_${key}_${id}`"
+          <input class="form-cheConditionConfigurationck-input" type="checkbox" :id="`tr_${key}_${id}`"
                  v-model="transformer.parameters[key]"
                  v-bind:class="{'is-invalid': errors.includes(`transformer_value_${key}`)}">
 
@@ -86,10 +88,10 @@
             },
 
             template() {
-                if (this.availableTransformers.hasOwnProperty(this.transformer.name))
-                    return this.availableTransformers[this.transformer.name];
+                if (this.availableTransformers.has(this.transformer.name))
+                    return this.availableTransformers.get(this.transformer.name);
 
-                return {label: '', items: []};
+                return {label: '', items: new Map()};
             },
         },
         methods: {
@@ -99,7 +101,7 @@
                     return false;
 
                 let transformerValid = true;
-                Object.entries(this.template.items).forEach(([key, transformerItem]) => {
+                this.template.items.forEach((transformerItem, key) => {
                     const field = `transformer_value_${key}`;
                     const value = this.transformer.parameters[key];
 
@@ -121,7 +123,7 @@
 
             handleTransformerIndexChange() {
                 this.transformer.parameters = {};
-                Object.entries(this.template.items).forEach(([key, valueItem]) => {
+                this.template.items.forEach((valueItem, key) => {
                     this.transformer.parameters[key] = valueItem.default_value;
                 });
             },
