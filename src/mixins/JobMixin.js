@@ -596,14 +596,8 @@ export default {
             return callApi(`/job/${this.job.job_id}/clusters/${type}/${id}?${params.join('&')}`);
         },
 
-        async getClusterGraphs(type, id, clusterId, getCluster = undefined,
-                               getClusterCompact = undefined, getReconciliation = undefined) {
-            const params = [];
-            if (getCluster !== undefined) params.push(`get_cluster=${getCluster}`);
-            if (getClusterCompact !== undefined) params.push(`get_cluster_compact=${getClusterCompact}`);
-            if (getReconciliation !== undefined) params.push(`get_reconciliation=${getReconciliation}`);
-
-            return callApi(`/job/${this.job.job_id}/cluster/${type}/${id}/${clusterId}/graph?${params.join('&')}`);
+        async getClusterGraphs(type, id, clusterId) {
+            return callApi(`/job/${this.job.job_id}/cluster/${type}/${id}/${clusterId}/graph`);
         },
 
         async validateLink(type, id, validation, source, target) {

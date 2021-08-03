@@ -1,5 +1,5 @@
 <template>
-  <card :id="'export_' + type + '_' + spec.id" type="export" :res-id="spec.id" :label="spec.label"
+  <card :id="'export_' + type + '_' + spec.id" type="export" :res-id="spec.id" :res-type="type" :label="spec.label"
         @show="onToggle(true)" @hide="onToggle(false)">
     <div class="row align-items-stretch justify-content-around">
       <sub-card label="Format" class="col-export">

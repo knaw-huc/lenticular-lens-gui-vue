@@ -307,10 +307,11 @@
 
     <clusters v-if="clustering" :type="type" :spec-id="spec.id"
               :selected-clusters="clusters" :similarity-range="similarityRange"
-              @select="selectCluster" @show="isModalOpen = true" @hide="onClustersClose" ref="clusters"/>
+              @select="selectCluster" @select-all="selectClusters" @unselect-all="unselectClusters"
+              @show="isModalOpen = true" @hide="onClustersClose" ref="clusters"/>
 
     <cluster-visualization
-        v-if="allowVisualization" :type="type" :spec-id="spec.id" :cluster="clusters[0]"
+        v-if="allowVisualization" :type="type" :spec-id="spec.id" :cluster-id="clusters[0]"
         @show="isModalOpen = true" @hide="isModalOpen = false" ref="visualization"/>
 
     <template v-if="isOpen && !isUpdatingSelection">
@@ -461,12 +462,7 @@
             },
 
             allowVisualization() {
-                return this.clustering && this.hasProperties && this.clusters.length === 1 &&
-                    Object.values(this.clusters[0].links).reduce((a, b) => a + b, 0) < 10000;
-            },
-
-            clusterIds() {
-                return this.clusters.map(cluster => cluster.id);
+                return this.clustering && this.hasProperties && this.clusters.length === 1;
             },
         },
         methods: {
@@ -527,12 +523,28 @@
                 this.$refs.visualization.showVisualization();
             },
 
-            selectCluster(cluster) {
+            selectCluster(clusterId) {
                 this.updateClusters = true;
-                if (this.clusters.includes(cluster))
-                    this.clusters.splice(this.clusters.indexOf(cluster), 1);
+                if (this.clusters.includes(clusterId))
+                    this.clusters.splice(this.clusters.indexOf(clusterId), 1);
                 else
-                    this.clusters.push(cluster);
+                    this.clusters.push(clusterId);
+            },
+
+            selectClusters(clusterIds) {
+                this.updateClusters = true;
+                clusterIds.forEach(clusterId => {
+                    if (!this.clusters.includes(clusterId))
+                        this.clusters.push(clusterId);
+                });
+            },
+
+            unselectClusters(clusterIds) {
+                this.updateClusters = true;
+                clusterIds.forEach(clusterId => {
+                    if (this.clusters.includes(clusterId))
+                        this.clusters.splice(this.clusters.indexOf(clusterId), 1);
+                });
             },
 
             onClustersClose() {
@@ -586,7 +598,7 @@
 
                 const totals = await this.$root.getLinksTotals(this.type, this.spec.id, {
                     applyFilters: applyFiltering,
-                    clusterIds: applyFiltering ? this.clusterIds : [],
+                    clusterIds: applyFiltering ? this.clusters : [],
                     min: applyFiltering ? this.similarityRange[0] : 0,
                     max: applyFiltering ? this.similarityRange[1] : 1
                 });
@@ -620,7 +632,7 @@
                 const links = await this.$root.getLinks(this.type, this.spec.id, {
                     accepted: this.showAcceptedLinks, rejected: this.showRejectedLinks, notSure: this.showNotSureLinks,
                     notValidated: this.showNotValidatedLinks, mixed: this.showMixedLinks,
-                    clusterIds: this.clusterIds, min: this.similarityRange[0], max: this.similarityRange[1],
+                    clusterIds: this.clusters, min: this.similarityRange[0], max: this.similarityRange[1],
                     sort: this.sortDesc ? 'desc' : 'asc'
                 }, 20, this.links.length);
 
@@ -756,7 +768,7 @@
                 const result = await this.$root.validateSelection(this.type, this.spec.id, validation, {
                     accepted: this.showAcceptedLinks, rejected: this.showRejectedLinks, notSure: this.showNotSureLinks,
                     notValidated: this.showNotValidatedLinks, mixed: this.showMixedLinks,
-                    clusterIds: this.clusterIds, min: this.similarityRange[0], max: this.similarityRange[1]
+                    clusterIds: this.clusters, min: this.similarityRange[0], max: this.similarityRange[1]
                 });
 
                 this.isUpdating = false;
@@ -787,7 +799,7 @@
                 const result = await this.$root.setMotivationForSelection(this.type, this.spec.id, this.motivation, {
                     accepted: this.showAcceptedLinks, rejected: this.showRejectedLinks, notSure: this.showNotSureLinks,
                     notValidated: this.showNotValidatedLinks, mixed: this.showMixedLinks,
-                    clusterIds: this.clusterIds, min: this.similarityRange[0], max: this.similarityRange[1]
+                    clusterIds: this.clusters, min: this.similarityRange[0], max: this.similarityRange[1]
                 });
 
                 this.isUpdating = false;

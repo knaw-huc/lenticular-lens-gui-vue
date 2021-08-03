@@ -6,25 +6,38 @@
       <div class="d-flex align-items-center">
         <h5 class="modal-title">Clusters</h5>
 
-        <div class="small ml-auto mr-5" v-bind:class="{'font-italic': !total}">
-          <template v-if="!total">Loading total clusters</template>
-          <template v-else>
-            <span class="col-auto font-weight-bold">Total clusters:</span>
-            {{ total.toLocaleString('en') }} / {{ clustering['clusters_count'].toLocaleString('en') }}
-          </template>
+        <div v-if="!total" class="font-italic small mr-auto ml-5">
+          Loading total clusters
         </div>
 
-        <div v-if="hasSizeRange && hasLinksRange"
-             class="btn-toolbar align-items-baseline" role="toolbar" aria-label="Toolbar">
+        <div v-else class="d-inline-flex flex-column small mr-auto ml-4">
+          <span class="d-inline-flex justify-content-between">
+            <span class="col-auto font-weight-bold mr-2">Total clusters:</span>
+            <span>{{ total.toLocaleString('en') }} / {{ clustering['clusters_count'].toLocaleString('en') }}</span>
+          </span>
+
+          <span class="d-inline-flex justify-content-between">
+            <span class="col-auto font-weight-bold mr-2">Selected clusters:</span>
+            <span>{{ selectedClusters.length.toLocaleString('en') }} / {{ total.toLocaleString('en') }}</span>
+          </span>
+        </div>
+
+        <div class="btn-toolbar align-items-baseline" role="toolbar" aria-label="Toolbar">
+          <div class="btn-group btn-group-sm align-items-baseline mr-4">
+            <button class="btn btn-secondary" @click="toggleSelectAll">
+              {{ allClustersAreSelected ? 'Unselect all' : 'Select all' }}
+            </button>
+          </div>
+
           <div v-if="hasSizeRange"
                class="btn-group btn-group-sm btn-group-toggle input-group input-group-sm align-items-baseline mr-4">
             <div class="input-group-prepend">
               <div class="input-group-text bg-white">Size</div>
 
               <div class="input-group-text">
-                <vue-slider v-model="sizeRange" class="mx-5 p-0" :width="100" :interval="1" :lazy="true"
+                <vue-slider v-model="sizeRange" class="mx-2 p-0" :width="150" :interval="1" :lazy="true"
                             :min="clustering['smallest_size']" :max="clustering['largest_size']"
-                            :tooltip-placement="['left', 'right']" tooltip="always" @change="resetClusters"/>
+                            :tooltip-placement="['top', 'top']" tooltip="always" @change="resetClusters"/>
               </div>
             </div>
 
@@ -45,9 +58,9 @@
               <div class="input-group-text bg-white">Links</div>
 
               <div class="input-group-text">
-                <vue-slider v-model="linksRange" class="mx-5 p-0" :width="100" :interval="1" :lazy="true"
+                <vue-slider v-model="linksRange" class="mx-2 p-0" :width="150" :interval="1" :lazy="true"
                             :min="clustering['smallest_count']" :max="clustering['largest_count']"
-                            :tooltip-placement="['left', 'right']" tooltip="always" @change="resetClusters"/>
+                            :tooltip-placement="['top', 'top']" tooltip="always" @change="resetClusters"/>
               </div>
             </div>
 
@@ -72,12 +85,12 @@
         :key="idx"
         :index="idx"
         :cluster="clusterData.cluster"
-        :selected="selectedClusters.includes(clusterData.cluster)"
+        :selected="selectedClusters.includes(clusterData.cluster.id)"
         :is-lens="type === 'lens'"
         :is-loading-stats="clusterData.updateFiltering"
         :is-loading-values="clusterData.updateProperties"
         @mounted="observer.observe($event)"
-        @select="$emit('select', clusterData.cluster)"/>
+        @select="$emit('select', clusterData.cluster.id)"/>
 
     <infinite-loading v-if="isOpen" :identifier="clustersIdentifier" @infinite="getClusters">
       <template v-slot:spinner>
@@ -115,6 +128,7 @@
             return {
                 isOpen: false,
                 total: null,
+                clusterIds: [],
 
                 sizeRange: [],
                 linksRange: [],
@@ -155,6 +169,10 @@
             hasLinksRange() {
                 return this.clustering['smallest_count'] < this.clustering['largest_count'];
             },
+
+            allClustersAreSelected() {
+                return this.clusterIds.every(id => this.selectedClusters.includes(id));
+            },
         },
         methods: {
             show() {
@@ -173,6 +191,13 @@
                     this.$emit('hide');
             },
 
+            toggleSelectAll() {
+                if (this.allClustersAreSelected)
+                    this.$emit('unselect-all', this.clusterIds);
+                else
+                    this.$emit('select-all', this.clusterIds);
+            },
+
             async getClustersTotals() {
                 if (this.loadingTotals)
                     return;
@@ -184,8 +209,10 @@
                     minCount: this.linksRange[0], maxCount: this.linksRange[1]
                 });
 
-                if (totals)
+                if (totals) {
                     this.total = totals.total || 0;
+                    this.clusterIds = totals.cluster_ids || [];
+                }
 
                 this.loadingTotals = false;
             },

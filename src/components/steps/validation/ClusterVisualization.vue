@@ -59,7 +59,7 @@
         props: {
             type: String,
             specId: Number,
-            cluster: Object,
+            clusterId: Number,
         },
         computed: {
             label() {
@@ -105,14 +105,13 @@
                 }
             },
 
-            async getGraphData(type) {
+            async getGraphData() {
                 if (this.isLoading)
                     return;
 
                 this.isLoading = true;
 
-                const data = await this.$root.getClusterGraphs(this.type, this.specId, this.cluster.id,
-                    type === 'cluster', this.cluster.extended);
+                const data = await this.$root.getClusterGraphs(this.type, this.specId, this.clusterId);
 
                 this.clusterGraph = data.cluster_graph;
                 this.clusterGraphCompact = data.cluster_graph_compact;
@@ -134,10 +133,3 @@
         },
     };
 </script>
-
-<style scoped>
-.plot {
-    width: 100%;
-    height: 100%;
-}
-</style>
