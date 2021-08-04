@@ -213,7 +213,7 @@
         </button>
       </sub-card>
 
-      <sub-card label="RDF metadata" class="col-export">
+      <sub-card v-if="acceptCreator" label="RDF metadata" class="col-export">
         <div class="form-group mt-3">
           <label :for="`creator_${type}_${spec.id}`">Creator:</label>
 
@@ -235,6 +235,7 @@
 
 <script>
     import props from "@/utils/props";
+    import {isAuthEnabled} from "@/utils/config";
     import PrefixMappings from "./PrefixMappings";
 
     const linkPredicates = Object.values(props.linkPredicates)
@@ -309,6 +310,10 @@
                     return 'csv';
 
                 return 'trig';
+            },
+
+            acceptCreator() {
+                return !isAuthEnabled();
             },
 
             exportLink() {
@@ -428,7 +433,7 @@
                 params.push(`link_pred_namespace=${encodeURIComponent(this.uri)}`);
                 params.push(`link_pred_shortname=${encodeURIComponent(this.prefix + ':' + this.predicate)}`);
 
-                if (this.creator) params.push(`creator=${encodeURIComponent(this.creator)}`);
+                if (this.acceptCreator && this.creator) params.push(`creator=${encodeURIComponent(this.creator)}`);
 
                 return this.$root.getExportRdfLink(this.type, this.spec.id, params);
             }

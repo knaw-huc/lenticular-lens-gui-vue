@@ -1,5 +1,5 @@
 import io from 'socket.io-client';
-import {getLenticularLensApi} from '@/utils/config';
+import {isAuthEnabled, getLenticularLensApi} from '@/utils/config';
 
 export default {
     data() {
@@ -905,6 +905,9 @@ async function callApi(relPath, body, params = {}) {
         else {
             response = await fetch(path);
         }
+
+        if (isAuthEnabled() && response.status === 401)
+            window.location.replace('/login?redirect-uri=' + encodeURIComponent(window.location.href));
 
         if (!response.ok && response.status !== 400)
             return null;
