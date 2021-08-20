@@ -232,6 +232,10 @@
                     || this.$root.hasUnsavedLensSpecs || this.$root.hasUnsavedViews;
             },
 
+            hasEntityTypeSelections() {
+                return this.$root.entityTypeSelections.length > 0;
+            },
+
             hasFinishedLinkset() {
                 return Boolean(this.$root.linksets.find(linkset =>
                     linkset.status === 'done' && linkset.links_count > 0));
@@ -422,8 +426,22 @@
                     this.researchForm = 'existing';
                 }
 
-                if (this.jobId)
+                if (this.jobId) {
                     await this.$root.loadJob(this.jobId);
+
+                    if (this.hasFinishedLinkset)
+                        this.activateStep('export');
+                    else if (this.hasEntityTypeSelections)
+                        this.activateStep('linksetSpecs');
+                    else
+                        this.activateStep('entityTypeSelections');
+
+                    if (this.$root.entityTypeSelections.length === 0)
+                        this.$root.addEntityTypeSelection();
+
+                    if (this.$root.linksetSpecs.length === 0)
+                        this.$root.addLinksetSpec();
+                }
 
                 this.isLoading = false;
             },
@@ -477,23 +495,14 @@
             this.$root.loadMethods();
         },
         watch: {
-            jobMetadata() {
-                this.activateStep('entityTypeSelections');
-                this.activateStep('linksetSpecs');
-
-                if (this.$root.entityTypeSelections.length === 0)
-                    this.$root.addEntityTypeSelection();
-
-                if (this.$root.linksetSpecs.length === 0)
-                    this.$root.addLinksetSpec();
+            hasEntityTypeSelections() {
+                if (this.hasEntityTypeSelections)
+                    this.activateStep('linksetSpecs');
             },
 
             hasFinishedLinkset() {
-                if (this.hasFinishedLinkset) {
-                    this.activateStep('lensSpecs');
-                    this.activateStep('validation');
+                if (this.hasFinishedLinkset)
                     this.activateStep('export');
-                }
             },
         },
     };

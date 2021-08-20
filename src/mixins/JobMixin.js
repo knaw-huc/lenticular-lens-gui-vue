@@ -388,8 +388,6 @@ export default {
                 await Promise.all([this.loadLinksets(), this.loadLenses(), this.loadClusterings()]);
                 this.setUpJobSocket();
             }
-            else if (this.jobSocket)
-                this.jobSocket.disconnect();
         },
 
         async loadLinksets() {
@@ -432,6 +430,24 @@ export default {
             this.jobSocket.on('alignment_delete', _ => this.loadLinksets() && this.loadLenses());
             this.jobSocket.on('clustering_update', e => this.clusteringUpdate(JSON.parse(e)));
             this.jobSocket.on('clustering_delete', _ => this.loadClusterings());
+            this.jobSocket.io.on('reconnect', async _ => {
+                const job = await callApi('/job/' + this.job.job_id);
+                if (job) {
+                    this.jobUpdate({
+                        job_id: job.job_id,
+                        updated_at: job.updated_at ? new Date(job.updated_at) : null,
+                        is_title_update: true,
+                        is_description_update: true,
+                        is_link_update: true,
+                        is_entity_type_selections_update: true,
+                        is_linkset_specs_update: true,
+                        is_lens_specs_update: true,
+                        is_views_update: true,
+                    });
+                }
+
+                this.loadLinksets() && this.loadLenses() && this.loadClusterings();
+            });
         },
 
         async createJob(inputs) {
@@ -810,6 +826,7 @@ export default {
         this.mainSocket = io(getLenticularLensApi());
         this.mainSocket.on('timbuctoo_update', e => this.timbuctooUpdate(JSON.parse(e)));
         this.mainSocket.on('timbuctoo_delete', _ => this.resetDownloads());
+        this.mainSocket.io.on('reconnect', () => this.resetDownloads());
     },
     beforeDestroy() {
         this.mainSocket.disconnect();
