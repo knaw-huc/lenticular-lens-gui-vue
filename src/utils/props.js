@@ -1,6 +1,6 @@
 export default {
     linkPredicates: {
-        SKOS: {
+        skos: {
             prefix: 'skos',
             uri: 'http://www.w3.org/2004/02/skos/core#',
             predicates: [
@@ -11,7 +11,7 @@ export default {
                 'relatedMatch',
             ]
         },
-        OWL: {
+        owl: {
             prefix: 'owl',
             uri: 'http://www.w3.org/2002/07/owl#',
             predicates: [
@@ -20,49 +20,49 @@ export default {
         },
     },
     tNorms: {
-        MINIMUM_T_NORM: 'Minimum t-norm (⊤min)',
-        PRODUCT_T_NORM: 'Product t-norm (⊤prod)',
-        LUKASIEWICZ_T_NORM: 'Łukasiewicz t-norm (⊤Luk)',
-        DRASTIC_T_NORM: 'Drastic t-norm (⊤D)',
-        NILPOTENT_MINIMUM: 'Nilpotent minimum (⊤nM)',
-        HAMACHER_PRODUCT: 'Hamacher product (⊤H0)',
+        minimum_t_norm: 'Minimum t-norm (⊤min)',
+        product_t_norm: 'Product t-norm (⊤prod)',
+        lukasiewicz_t_norm: 'Łukasiewicz t-norm (⊤Luk)',
+        drastic_t_norm: 'Drastic t-norm (⊤D)',
+        nilpotent_minimum: 'Nilpotent minimum (⊤nM)',
+        hamacher_product: 'Hamacher product (⊤H0)',
     },
-    tConorms: {
-        MAXIMUM_T_CONORM: 'Maximum t-conorm (⊥max)',
-        PROBABILISTIC_SUM: 'Probabilistic sum (⊥sum)',
-        BOUNDED_SUM: 'Bounded sum (⊥Luk)',
-        DRASTIC_T_CONORM: 'Drastic t-conorm (⊥D)',
-        NILPOTENT_MAXIMUM: 'Nilpotent maximum (⊥nM)',
-        EINSTEIN_SUM: 'Einstein sum (⊥H2)',
+    sNorms: {
+        maximum_s_norm: 'Maximum s-norm (⊥max)',
+        probabilistic_sum: 'Probabilistic sum (⊥sum)',
+        bounded_sum: 'Bounded sum (⊥Luk)',
+        drastic_s_norm: 'Drastic s-norm (⊥D)',
+        nilpotent_maximum: 'Nilpotent maximum (⊥nM)',
+        einstein_sum: 'Einstein sum (⊥H2)',
     },
     fuzzyLogicOptionGroups: {
-        'All conditions must be met (AND)': ['MINIMUM_T_NORM', 'PRODUCT_T_NORM', 'LUKASIEWICZ_T_NORM',
-            'DRASTIC_T_NORM', 'NILPOTENT_MINIMUM', 'HAMACHER_PRODUCT'],
-        'At least one of the conditions must be met (OR)': ['MAXIMUM_T_CONORM', 'PROBABILISTIC_SUM', 'BOUNDED_SUM',
-            'DRASTIC_T_CONORM', 'NILPOTENT_MAXIMUM', 'EINSTEIN_SUM'],
+        'All conditions must be met (AND)': ['minimum_t_norm', 'product_t_norm', 'lukasiewicz_t_norm',
+            'drastic_t_norm', 'nilpotent_minimum', 'hamacher_product'],
+        'At least one of the conditions must be met (OR)': ['maximum_s_norm', 'probabilistic_sum', 'bounded_sum',
+            'drastic_s_norm', 'nilpotent_maximum', 'einstein_sum'],
     },
     lensOptions: {
-        UNION: 'Union (A ∪ B)',
-        INTERSECTION: 'Intersection (A ∩ B)',
-        DIFFERENCE: 'Difference (A - B)',
-        SYM_DIFFERENCE: 'Symmetric difference (A ∆ B)',
-        IN_SET_AND: 'Source and target resources match',
-        IN_SET_OR: 'Source or target resources match',
-        IN_SET_SOURCE: 'Source resources match',
-        IN_SET_TARGET: 'Target resources match'
+        union: 'Union (A ∪ B)',
+        intersection: 'Intersection (A ∩ B)',
+        difference: 'Difference (A - B)',
+        sym_difference: 'Symmetric difference (A ∆ B)',
+        in_set_and: 'Source and target resources match',
+        in_set_or: 'Source or target resources match',
+        in_set_source: 'Source resources match',
+        in_set_target: 'Target resources match'
     },
     lensOptionGroups: {
-        'Operations on links': ['UNION', 'INTERSECTION', 'DIFFERENCE', 'SYM_DIFFERENCE'],
-        'Operations on link resources': ['IN_SET_AND', 'IN_SET_OR', 'IN_SET_SOURCE', 'IN_SET_TARGET'],
+        'Operations on links': ['union', 'intersection', 'difference', 'sym_difference'],
+        'Operations on link resources': ['in_set_and', 'in_set_or', 'in_set_source', 'in_set_target'],
     },
     lensOptionDescriptions: {
-        UNION: 'All links of both linksets/lenses',
-        INTERSECTION: 'Only links that appear in both linksets/lenses',
-        DIFFERENCE: 'Only links from the first linkset/lens, not from the second linkset/lens',
-        SYM_DIFFERENCE: 'Only links which appear in either one linkset/lens, but not both',
-        IN_SET_AND: 'Both the source and target resource from the first linkset/lens must appear in the the set of resources from the second linkset/lens',
-        IN_SET_OR: 'Either the source or the target resource from the first linkset/lens must appear in the the set of resources from the second linkset/lens',
-        IN_SET_SOURCE: 'The source resource from the first linkset/lens must appear in the the set of resources from the second linkset/lens',
-        IN_SET_TARGET: 'The target resource from the first linkset/lens must appear in the the set of resources from the second linkset/lens'
+        union: 'All links of both linksets/lenses',
+        intersection: 'Only links that appear in both linksets/lenses',
+        difference: 'Only links from the first linkset/lens, not from the second linkset/lens',
+        sym_difference: 'Only links which appear in either one linkset/lens, but not both',
+        in_set_and: 'Both the source and target resource from the first linkset/lens must appear in the the set of resources from the second linkset/lens',
+        in_set_or: 'Either the source or the target resource from the first linkset/lens must appear in the the set of resources from the second linkset/lens',
+        in_set_source: 'The source resource from the first linkset/lens must appear in the the set of resources from the second linkset/lens',
+        in_set_target: 'The target resource from the first linkset/lens must appear in the the set of resources from the second linkset/lens'
     },
 };

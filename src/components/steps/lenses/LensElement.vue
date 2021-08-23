@@ -16,7 +16,7 @@
         </div>
       </div>
 
-      <div v-if="type === 'DIFFERENCE' || type.startsWith('IN_SET')"
+      <div v-if="type === 'difference' || type.startsWith('in_set')"
            class="col-auto small text-muted font-italic">
         <template v-if="index === 0">Target</template>
         <template v-else>Filter</template>

@@ -20,7 +20,7 @@
           </span>
           using
           <span class="text-secondary">
-            {{ {...tNorms, ...tConorms}[methodGroup.type] }}
+            {{ {...tNorms, ...sNorms}[methodGroup.type] }}
           </span>
           <template v-if="methodGroup.threshold">
             having a threshold of
@@ -63,7 +63,7 @@
         data() {
             return {
                 tNorms: props.tNorms,
-                tConorms: props.tConorms,
+                sNorms: props.sNorms,
                 visible: true,
             };
         },
@@ -87,11 +87,11 @@
             },
 
             usingFuzzyLogic() {
-                return !['AND', 'OR'].includes(this.methodGroup.type);
+                return !['and', 'or'].includes(this.methodGroup.type);
             },
 
             isConjunction() {
-                return this.methodGroup.type === 'AND' || Object.keys(this.tNorms).includes(this.methodGroup.type);
+                return this.methodGroup.type === 'and' || Object.keys(this.tNorms).includes(this.methodGroup.type);
             },
         },
     }

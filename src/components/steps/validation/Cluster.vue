@@ -98,43 +98,43 @@
 
         <div class="row small">
           <div class="col-8 font-weight-bold">
-            Not sure:
+            Uncertain:
           </div>
 
           <div class="col">
             <loading v-if="isLoadingStats" :inline="true"/>
             <template v-else>
-              {{ cluster.linksFiltered.not_sure.toLocaleString('en') }}
+              {{ cluster.linksFiltered.uncertain.toLocaleString('en') }}
             </template>
-            / {{ cluster.links.not_sure.toLocaleString('en') }}
+            / {{ cluster.links.uncertain.toLocaleString('en') }}
           </div>
         </div>
 
         <div class="row small">
           <div class="col-8 font-weight-bold">
-            Not validated:
+            Unchecked:
           </div>
 
           <div class="col">
             <loading v-if="isLoadingStats" :inline="true"/>
             <template v-else>
-              {{ cluster.linksFiltered.not_validated.toLocaleString('en') }}
+              {{ cluster.linksFiltered.unchecked.toLocaleString('en') }}
             </template>
-            / {{ cluster.links.not_validated.toLocaleString('en') }}
+            / {{ cluster.links.unchecked.toLocaleString('en') }}
           </div>
         </div>
 
         <div v-if="isLens" class="row small">
           <div class="col-8 font-weight-bold">
-            Mixed:
+            Disputed:
           </div>
 
           <div class="col">
             <loading v-if="isLoadingStats" :inline="true"/>
             <template v-else>
-              {{ cluster.linksFiltered.mixed.toLocaleString('en') }}
+              {{ cluster.linksFiltered.disputed.toLocaleString('en') }}
             </template>
-            / {{ cluster.links.mixed.toLocaleString('en') }}
+            / {{ cluster.links.disputed.toLocaleString('en') }}
           </div>
         </div>
       </div>
@@ -171,7 +171,7 @@
         },
         computed: {
             isAllValidated() {
-                return !this.cluster.links.hasOwnProperty('not_validated') || this.cluster.links.not_validated === 0;
+                return !this.cluster.links.hasOwnProperty('unchecked') || this.cluster.links.unchecked === 0;
             },
         },
         mounted() {

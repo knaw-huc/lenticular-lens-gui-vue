@@ -125,8 +125,8 @@
             options: {
                 type: Object,
                 default: () => ({
-                    'AND': 'All conditions must be met (AND)',
-                    'OR': 'At least one of the conditions must be met (OR)'
+                    'and': 'All conditions must be met (AND)',
+                    'or': 'At least one of the conditions must be met (OR)'
                 })
             },
             optionGroups: {

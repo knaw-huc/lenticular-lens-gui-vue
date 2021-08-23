@@ -17,9 +17,9 @@
       <p class="font-weight-bold my-2">
         using a lens type of
         <span class="text-secondary">{{ elementsGroup.type }}</span>
-        <template v-if="elementsGroup.t_conorm">
-          and a t-conorm of
-          <span class="text-secondary">{{ tConorms[elementsGroup.type] }}</span>
+        <template v-if="elementsGroup.s_norm">
+          and a s-norm of
+          <span class="text-secondary">{{ sNorms[elementsGroup.type] }}</span>
         </template>
         <template v-if="elementsGroup.threshold">
           having a threshold of
@@ -60,7 +60,7 @@
         },
         data() {
             return {
-                tConorms: props.tConorms,
+                sNorms: props.sNorms,
                 visible: true,
             };
         },

@@ -315,9 +315,9 @@
                     clusterData.cluster.linksFiltered = newCluster ? newCluster.links : {
                         accepted: 0,
                         declined: 0,
-                        not_sure: 0,
-                        not_validated: 0,
-                        mixed: 0
+                        uncertain: 0,
+                        unchecked: 0,
+                        disputed: 0
                     };
                     clusterData.cluster.sizeFiltered = newCluster ? newCluster.size : 0;
 

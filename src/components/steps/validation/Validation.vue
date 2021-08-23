@@ -103,51 +103,51 @@
                     </span>
                   </label>
 
-                  <label class="btn btn-secondary" v-bind:class="{'active': showNotSureLinks}">
-                    <input type="checkbox" autocomplete="off" v-model="showNotSureLinks"
+                  <label class="btn btn-secondary" v-bind:class="{'active': showUncertainLinks}">
+                    <input type="checkbox" autocomplete="off" v-model="showUncertainLinks"
                            :disabled="loadingTotals" @change="resetLinks('reset')"/>
-                    {{ showNotSureLinks ? 'Hide not sure' : 'Show not sure' }}
+                    {{ showUncertainLinks ? 'Hide uncertain' : 'Show uncertain' }}
 
-                    <span v-if="notSureLinks !== null || allAcceptedLinks !== null" class="badge badge-light ml-1">
-                      <template v-if="notSureLinks !== null && allNotSureLinks !== null">
-                        {{ notSureLinks.toLocaleString('en') }} /
+                    <span v-if="uncertainLinks !== null || allAcceptedLinks !== null" class="badge badge-light ml-1">
+                      <template v-if="uncertainLinks !== null && allUncertainLinks !== null">
+                        {{ uncertainLinks.toLocaleString('en') }} /
                       </template>
 
-                      <template v-if="allNotSureLinks !== null">
-                        {{ allNotSureLinks.toLocaleString('en') }}
+                      <template v-if="allUncertainLinks !== null">
+                        {{ allUncertainLinks.toLocaleString('en') }}
                       </template>
                     </span>
                   </label>
 
-                  <label class="btn btn-secondary" v-bind:class="{'active': showNotValidatedLinks}">
-                    <input type="checkbox" autocomplete="off" v-model="showNotValidatedLinks"
+                  <label class="btn btn-secondary" v-bind:class="{'active': showUncheckedLinks}">
+                    <input type="checkbox" autocomplete="off" v-model="showUncheckedLinks"
                            :disabled="loadingTotals" @change="resetLinks('reset')"/>
-                    {{ showNotValidatedLinks ? 'Hide not validated' : 'Show not validated' }}
+                    {{ showUncheckedLinks ? 'Hide unchecked' : 'Show unchecked' }}
 
-                    <span v-if="notValidatedLinks !== null || allNotValidatedLinks !== null"
+                    <span v-if="uncheckedLinks !== null || allUncheckedLinks !== null"
                           class="badge badge-light ml-1">
-                      <template v-if="notValidatedLinks !== null && allNotValidatedLinks !== null">
-                        {{ notValidatedLinks.toLocaleString('en') }} /
+                      <template v-if="uncheckedLinks !== null && allUncheckedLinks !== null">
+                        {{ uncheckedLinks.toLocaleString('en') }} /
                       </template>
 
-                      <template v-if="allNotValidatedLinks !== null">
-                        {{ allNotValidatedLinks.toLocaleString('en') }}
+                      <template v-if="allUncheckedLinks !== null">
+                        {{ allUncheckedLinks.toLocaleString('en') }}
                       </template>
                     </span>
                   </label>
 
-                  <label v-if="isLens" class="btn btn-secondary" v-bind:class="{'active': showMixedLinks}">
-                    <input type="checkbox" autocomplete="off" v-model="showMixedLinks"
+                  <label v-if="isLens" class="btn btn-secondary" v-bind:class="{'active': showDisputedLinks}">
+                    <input type="checkbox" autocomplete="off" v-model="showDisputedLinks"
                            :disabled="loadingTotals" @change="resetLinks('reset')"/>
-                    {{ showMixedLinks ? 'Hide mixed' : 'Show mixed' }}
+                    {{ showDisputedLinks ? 'Hide disputed' : 'Show disputed' }}
 
-                    <span v-if="mixedLinks !== null || allMixedLinks !== null" class="badge badge-light ml-1">
-                      <template v-if="mixedLinks !== null && allMixedLinks !== null">
-                        {{ mixedLinks.toLocaleString('en') }} /
+                    <span v-if="disputedLinks !== null || allDisputedLinks !== null" class="badge badge-light ml-1">
+                      <template v-if="disputedLinks !== null && allDisputedLinks !== null">
+                        {{ disputedLinks.toLocaleString('en') }} /
                       </template>
 
-                      <template v-if="allMixedLinks !== null">
-                        {{ allMixedLinks.toLocaleString('en') }}
+                      <template v-if="allDisputedLinks !== null">
+                        {{ allDisputedLinks.toLocaleString('en') }}
                       </template>
                     </span>
                   </label>
@@ -181,9 +181,9 @@
                     </b-dropdown-item-button>
 
                     <b-dropdown-item-button variant="warning" :disabled="isUpdating"
-                                            @click="validateSelection('not_sure')">
+                                            @click="validateSelection('uncertain')">
                       <fa-icon icon="question"/>
-                      Not sure
+                      Uncertain
                     </b-dropdown-item-button>
                   </b-dropdown>
 
@@ -323,7 +323,7 @@
           :is-active="currentIdx === idx"
           @accepted="validateLink(link,'accepted')"
           @rejected="validateLink(link,'rejected')"
-          @not_sure="validateLink(link,'not_sure')"
+          @uncertain="validateLink(link,'uncertain')"
           @motivation="setMotivationForLink(link, $event)"
           @motivation_open="isLinkMotivationOpen = true; currentIdx = idx"
           @motivation_close="isLinkMotivationOpen = false"
@@ -381,22 +381,22 @@
 
                 showAcceptedLinks: false,
                 showRejectedLinks: false,
-                showNotSureLinks: false,
-                showNotValidatedLinks: true,
-                showMixedLinks: false,
+                showUncertainLinks: false,
+                showUncheckedLinks: true,
+                showDisputedLinks: false,
                 resetShownLinks: false,
 
                 allAcceptedLinks: null,
                 allRejectedLinks: null,
-                allNotSureLinks: null,
-                allNotValidatedLinks: null,
-                allMixedLinks: null,
+                allUncertainLinks: null,
+                allUncheckedLinks: null,
+                allDisputedLinks: null,
 
                 acceptedLinks: null,
                 rejectedLinks: null,
-                notSureLinks: null,
-                notValidatedLinks: null,
-                mixedLinks: null,
+                uncertainLinks: null,
+                uncheckedLinks: null,
+                disputedLinks: null,
 
                 loadingTotals: false,
                 loadingLinks: false,
@@ -607,16 +607,16 @@
                     if (applyFiltering) {
                         this.acceptedLinks = totals.accepted || 0;
                         this.rejectedLinks = totals.rejected || 0;
-                        this.notSureLinks = totals.not_sure || 0;
-                        this.notValidatedLinks = totals.not_validated || 0;
-                        this.mixedLinks = totals.mixed || 0;
+                        this.uncertainLinks = totals.uncertain || 0;
+                        this.uncheckedLinks = totals.unchecked || 0;
+                        this.disputedLinks = totals.disputed || 0;
                     }
                     else {
                         this.allAcceptedLinks = totals.accepted || 0;
                         this.allRejectedLinks = totals.rejected || 0;
-                        this.allNotSureLinks = totals.not_sure || 0;
-                        this.allNotValidatedLinks = totals.not_validated || 0;
-                        this.allMixedLinks = totals.mixed || 0;
+                        this.allUncertainLinks = totals.uncertain || 0;
+                        this.allUncheckedLinks = totals.unchecked || 0;
+                        this.allDisputedLinks = totals.disputed || 0;
                     }
                 }
 
@@ -630,9 +630,14 @@
                 this.loadingLinks = true;
 
                 const links = await this.$root.getLinks(this.type, this.spec.id, {
-                    accepted: this.showAcceptedLinks, rejected: this.showRejectedLinks, notSure: this.showNotSureLinks,
-                    notValidated: this.showNotValidatedLinks, mixed: this.showMixedLinks,
-                    clusterIds: this.clusters, min: this.similarityRange[0], max: this.similarityRange[1],
+                    accepted: this.showAcceptedLinks,
+                    rejected: this.showRejectedLinks,
+                    uncertain: this.showUncertainLinks,
+                    unchecked: this.showUncheckedLinks,
+                    disputed: this.showDisputedLinks,
+                    clusterIds: this.clusters,
+                    min: this.similarityRange[0],
+                    max: this.similarityRange[1],
                     sort: this.sortDesc ? 'desc' : 'asc'
                 }, 20, this.links.length);
 
@@ -675,7 +680,7 @@
                             await this.validateLink(this.links[this.currentIdx], 'rejected');
                             break;
                         case 32: // space
-                            await this.validateLink(this.links[this.currentIdx], 'not_sure');
+                            await this.validateLink(this.links[this.currentIdx], 'uncertain');
                             break;
                         case 77: // m
                             this.$refs.link[this.currentIdx].openMotivationButton();
@@ -698,7 +703,7 @@
 
             async validateLink(link, validation) {
                 const before = link.valid;
-                const after = before === validation ? 'not_validated' : validation;
+                const after = before === validation ? 'unchecked' : validation;
 
                 this.isUpdating = true;
                 link.updating = true;
@@ -712,9 +717,9 @@
                     link.valid = after;
 
                     switch (before) {
-                        case 'not_validated':
-                            this.notValidatedLinks--;
-                            this.allNotValidatedLinks--;
+                        case 'unchecked':
+                            this.uncheckedLinks--;
+                            this.allUncheckedLinks--;
                             break;
                         case 'accepted':
                             this.acceptedLinks--;
@@ -724,20 +729,20 @@
                             this.rejectedLinks--;
                             this.allRejectedLinks--;
                             break;
-                        case 'not_sure':
-                            this.notSureLinks--;
-                            this.allNotSureLinks--;
+                        case 'uncertain':
+                            this.uncertainLinks--;
+                            this.allUncertainLinks--;
                             break;
-                        case 'mixed':
-                            this.mixedLinks--;
-                            this.allMixedLinks--;
+                        case 'disputed':
+                            this.disputedLinks--;
+                            this.allDisputedLinks--;
                             break;
                     }
 
                     switch (after) {
-                        case 'not_validated':
-                            this.notValidatedLinks++;
-                            this.allNotValidatedLinks++;
+                        case 'unchecked':
+                            this.uncheckedLinks++;
+                            this.allUncheckedLinks++;
                             break;
                         case 'accepted':
                             this.acceptedLinks++;
@@ -747,9 +752,9 @@
                             this.rejectedLinks++;
                             this.allRejectedLinks++;
                             break;
-                        case 'not_sure':
-                            this.notSureLinks++;
-                            this.allNotSureLinks++;
+                        case 'uncertain':
+                            this.uncertainLinks++;
+                            this.allUncertainLinks++;
                             break;
                     }
 
@@ -766,9 +771,14 @@
                 this.isUpdatingSelection = true;
 
                 const result = await this.$root.validateSelection(this.type, this.spec.id, validation, {
-                    accepted: this.showAcceptedLinks, rejected: this.showRejectedLinks, notSure: this.showNotSureLinks,
-                    notValidated: this.showNotValidatedLinks, mixed: this.showMixedLinks,
-                    clusterIds: this.clusters, min: this.similarityRange[0], max: this.similarityRange[1]
+                    accepted: this.showAcceptedLinks,
+                    rejected: this.showRejectedLinks,
+                    uncertain: this.showUncertainLinks,
+                    unchecked: this.showUncheckedLinks,
+                    disputed: this.showDisputedLinks,
+                    clusterIds: this.clusters,
+                    min: this.similarityRange[0],
+                    max: this.similarityRange[1]
                 });
 
                 this.isUpdating = false;
@@ -797,9 +807,14 @@
                 this.isUpdatingSelection = true;
 
                 const result = await this.$root.setMotivationForSelection(this.type, this.spec.id, this.motivation, {
-                    accepted: this.showAcceptedLinks, rejected: this.showRejectedLinks, notSure: this.showNotSureLinks,
-                    notValidated: this.showNotValidatedLinks, mixed: this.showMixedLinks,
-                    clusterIds: this.clusters, min: this.similarityRange[0], max: this.similarityRange[1]
+                    accepted: this.showAcceptedLinks,
+                    rejected: this.showRejectedLinks,
+                    uncertain: this.showUncertainLinks,
+                    unchecked: this.showUncheckedLinks,
+                    disputed: this.showDisputedLinks,
+                    clusterIds: this.clusters,
+                    min: this.similarityRange[0],
+                    max: this.similarityRange[1]
                 });
 
                 this.isUpdating = false;

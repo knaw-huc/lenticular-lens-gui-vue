@@ -85,7 +85,7 @@
       </div>
 
       <div v-if="useFuzzyLogic" class="form-group row">
-        <label :for="'t_conorm_' + id" class="col-sm-3 col-form-label">
+        <label :for="'s_norm_' + id" class="col-sm-3 col-form-label">
           T-norm
         </label>
 
@@ -99,13 +99,13 @@
       </div>
 
       <div v-if="useFuzzyLogic" class="form-group row">
-        <label :for="'t_conorm_' + id" class="col-sm-3 col-form-label">
+        <label :for="'s_norm_' + id" class="col-sm-3 col-form-label">
           T-conorm
         </label>
 
         <div class="col-sm-3">
-          <select :id="'t_conorm' + id" class="form-control form-control-sm" v-model="condition.fuzzy.t_conorm">
-            <option v-for="(description, key) in tConorms" :value="key">
+          <select :id="'s_norm' + id" class="form-control form-control-sm" v-model="condition.fuzzy.s_norm">
+            <option v-for="(description, key) in sNorms" :value="key">
               {{ description }}
             </option>
           </select>
@@ -131,13 +131,13 @@
       <span v-if="showLabel" class="badge badge-secondary right">Fuzzy logic configuration</span>
 
       <div class="form-group row">
-        <label :for="'t_conorm_' + id" class="col-sm-3 col-form-label">
+        <label :for="'s_norm_' + id" class="col-sm-3 col-form-label">
           T-conorm
         </label>
 
         <div class="col-sm-3">
-          <select :id="'t_conorm' + id" class="form-control form-control-sm" v-model="condition.fuzzy.t_conorm">
-            <option v-for="(description, key) in tConorms" :value="key">
+          <select :id="'s_norm' + id" class="form-control form-control-sm" v-model="condition.fuzzy.s_norm">
+            <option v-for="(description, key) in sNorms" :value="key">
               {{ description }}
             </option>
           </select>
@@ -172,7 +172,7 @@
         data() {
             return {
                 tNorms: props.tNorms,
-                tConorms: props.tConorms,
+                sNorms: props.sNorms,
             };
         },
         props: {

@@ -307,7 +307,7 @@
 
             clearFilter() {
                 this.entityTypeSelection.filter = {
-                    type: 'AND',
+                    type: 'and',
                     conditions: [],
                 };
             },

@@ -187,8 +187,8 @@
                 isOpen: false,
                 useFuzzyLogic: false,
                 tNorms: Object.keys(props.tNorms),
-                tConorms: Object.keys(props.tConorms),
-                fuzzyLogicOptions: {...props.tNorms, ...props.tConorms},
+                sNorms: Object.keys(props.sNorms),
+                fuzzyLogicOptions: {...props.tNorms, ...props.sNorms},
                 fuzzyLogicOptionGroups: props.fuzzyLogicOptionGroups,
             };
         },
@@ -256,8 +256,8 @@
                         normalized: false,
                     },
                     fuzzy: {
-                        t_norm: 'MINIMUM_T_NORM',
-                        t_conorm: 'MAXIMUM_T_CONORM',
+                        t_norm: 'minimum_t_norm',
+                        s_norm: 'maximum_s_norm',
                         threshold: 0,
                     },
                     list_matching: {
@@ -325,18 +325,18 @@
             updateLogicBoxTypes(conditions) {
                 if (conditions.hasOwnProperty('type')) {
                     if (this.useFuzzyLogic) {
-                        if (conditions.type === 'AND')
-                            conditions.type = 'MINIMUM_T_NORM';
-                        if (conditions.type === 'OR')
-                            conditions.type = 'MAXIMUM_T_CONORM';
+                        if (conditions.type === 'and')
+                            conditions.type = 'minimum_t_norm';
+                        if (conditions.type === 'or')
+                            conditions.type = 'maximum_s_norm';
 
                         this.$set(conditions, 'threshold', 0);
                     }
                     else {
                         if (this.tNorms.includes(conditions.type))
-                            conditions.type = 'AND';
-                        if (this.tConorms.includes(conditions.type))
-                            conditions.type = 'OR';
+                            conditions.type = 'and';
+                        if (this.sNorms.includes(conditions.type))
+                            conditions.type = 'or';
 
                         this.$delete(conditions, 'threshold');
                     }
@@ -373,7 +373,7 @@
             if (this.linksetSpec.targets.length === 0)
                 this.addEntityTypeSelection('targets');
 
-            this.useFuzzyLogic = !['AND', 'OR'].includes(this.linksetSpec.methods.type);
+            this.useFuzzyLogic = !['and', 'or'].includes(this.linksetSpec.methods.type);
         },
         watch: {
             useFuzzyLogic() {

@@ -10,7 +10,7 @@
           </div>
 
           <div class="property-pill property-resource read-only" :title="collection.uri">
-            {{ collection.title || collection.shortenedUri || collectionId }}
+            {{ collection.title || collection.shortenedUri || collection.id }}
           </div>
         </div>
       </div>

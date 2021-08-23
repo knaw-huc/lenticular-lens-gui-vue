@@ -25,6 +25,15 @@
       <sub-card label="Data" class="col-export">
         <div class="custom-control custom-switch mt-3">
           <input type="checkbox" class="custom-control-input" autocomplete="off"
+                 :id="'export_metadata_' + type + '_' + spec.id" :disabled="format === 'csv'"
+                 v-model="exportMetadata" @change="updateState('export_metadata')"/>
+          <label class="custom-control-label" :for="'export_metadata_' + type + '_' + spec.id">
+            Metadata
+          </label>
+        </div>
+
+        <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" autocomplete="off"
                  :id="'export_linkset_' + type + '_' + spec.id" :disabled="format === 'csv'"
                  v-model="exportLinkset" @change="updateState('export_linkset')"/>
           <label class="custom-control-label" :for="'export_linkset_' + type + '_' + spec.id">
@@ -34,28 +43,19 @@
 
         <div class="custom-control custom-switch">
           <input type="checkbox" class="custom-control-input" autocomplete="off"
-                 :id="'export_metadata_' + type + '_' + spec.id" :disabled="format === 'csv'"
-                 v-model="exportMetadata" @change="updateState('export_metadata')"/>
-          <label class="custom-control-label" :for="'export_metadata_' + type + '_' + spec.id">
-            Metadata
-          </label>
-        </div>
-
-        <div class="custom-control custom-switch mt-1 ml-4">
-          <input type="checkbox" class="custom-control-input" autocomplete="off"
-                 :id="'export_validation_set_' + type + '_' + spec.id" :disabled="!exportMetadata"
+                 :id="'export_validation_set_' + type + '_' + spec.id" :disabled="format === 'csv'"
                  v-model="exportValidationSet" @change="updateState('export_validation_set')"/>
           <label class="custom-control-label" :for="'export_validation_set_' + type + '_' + spec.id">
-            Include the validation set
+            Validation set
           </label>
         </div>
 
-        <div class="custom-control custom-switch ml-4">
+        <div class="custom-control custom-switch">
           <input type="checkbox" class="custom-control-input" autocomplete="off"
-                 :id="'export_cluster_set_' + type + '_' + spec.id" :disabled="!exportMetadata || !clustering"
+                 :id="'export_cluster_set_' + type + '_' + spec.id" :disabled="format === 'csv' || !clustering"
                  v-model="exportClusterSet" @change="updateState('export_cluster_set')"/>
           <label class="custom-control-label" :for="'export_cluster_set_' + type + '_' + spec.id">
-            Include the cluster set
+            Cluster set
           </label>
         </div>
       </sub-card>
@@ -81,10 +81,10 @@
 
         <div class="custom-control custom-switch">
           <input type="checkbox" class="custom-control-input" autocomplete="off"
-                 :id="'export_not_validated_links_' + type + '_' + spec.id"
-                 v-model="exportNotValidatedLinks" @change="updateState('export_not_validated_links')"/>
-          <label class="custom-control-label" :for="'export_not_validated_links_' + type + '_' + spec.id">
-            Not validated links
+                 :id="'export_unchecked_links_' + type + '_' + spec.id"
+                 v-model="exportUncheckedLinks" @change="updateState('export_unchecked_links')"/>
+          <label class="custom-control-label" :for="'export_unchecked_links_' + type + '_' + spec.id">
+            Unchecked links
           </label>
         </div>
 
@@ -108,19 +108,19 @@
 
         <div v-if="isLens" class="custom-control custom-switch">
           <input type="checkbox" class="custom-control-input" autocomplete="off"
-                 :id="'export_mixed_links_' + type + '_' + spec.id"
-                 v-model="exportMixedLinks" @change="updateState('export_mixed_links')"/>
-          <label class="custom-control-label" :for="'export_mixed_links_' + type + '_' + spec.id">
-            Mixed links
+                 :id="'export_disputed_links_' + type + '_' + spec.id"
+                 v-model="exportDisputedLinks" @change="updateState('export_disputed_links')"/>
+          <label class="custom-control-label" :for="'export_disputed_links_' + type + '_' + spec.id">
+            Disputed links
           </label>
         </div>
 
         <div class="custom-control custom-switch">
           <input type="checkbox" class="custom-control-input" autocomplete="off"
-                 :id="'export_unsure_links_' + type + '_' + spec.id"
-                 v-model="exportUnsureLinks" @change="updateState('export_unsure_links')"/>
-          <label class="custom-control-label" :for="'export_unsure_links_' + type + '_' + spec.id">
-            Unsure links
+                 :id="'export_uncertain_links_' + type + '_' + spec.id"
+                 v-model="exportUncertainLinks" @change="updateState('export_uncertain_links')"/>
+          <label class="custom-control-label" :for="'export_uncertain_links_' + type + '_' + spec.id">
+            Uncertain links
           </label>
         </div>
       </sub-card>
@@ -273,11 +273,11 @@
                 exportClusterSet: true,
                 exportAllLinks: true,
                 exportValidatedLinks: true,
-                exportNotValidatedLinks: true,
+                exportUncheckedLinks: true,
                 exportAcceptedLinks: true,
                 exportRejectedLinks: true,
-                exportMixedLinks: true,
-                exportUnsureLinks: true,
+                exportDisputedLinks: true,
+                exportUncertainLinks: true,
                 reification: 'standard',
                 linkPredicatesList: linkPredicates,
                 selectedLinkPredicate: linkPredicates[0],
@@ -341,52 +341,49 @@
                     case 'export_linkset':
                         if (!this.exportLinkset)
                             this.reification = 'none'
-                        if (!this.exportLinkset && !this.exportMetadata) {
+                        if (!this.exportLinkset && !this.exportMetadata &&
+                            !this.exportValidationSet && !this.exportClusterSet)
                             this.exportMetadata = true;
-                            this.exportValidationSet = true;
-                            this.exportClusterSet = true;
-                        }
                         break;
                     case 'export_metadata':
-                        if (!this.exportLinkset && !this.exportMetadata)
+                    case 'export_validation_set':
+                    case 'export_cluster_set':
+                        if (!this.exportLinkset && !this.exportMetadata &&
+                            !this.exportValidationSet && !this.exportClusterSet)
                             this.exportLinkset = true;
-                        if (this.exportMetadata) {
-                            this.exportValidationSet = true;
-                            this.exportClusterSet = true;
-                        }
                         break;
                     case 'export_all_links':
                         this.exportValidatedLinks = this.exportAllLinks;
-                        this.exportNotValidatedLinks = this.exportAllLinks;
+                        this.exportUncheckedLinks = this.exportAllLinks;
                         this.exportAcceptedLinks = this.exportAllLinks;
                         this.exportRejectedLinks = this.exportAllLinks;
-                        this.exportMixedLinks = this.exportAllLinks;
-                        this.exportUnsureLinks = this.exportAllLinks;
+                        this.exportDisputedLinks = this.exportAllLinks;
+                        this.exportUncertainLinks = this.exportAllLinks;
                         if (!this.exportAllLinks)
                             this.exportAcceptedLinks = true;
                         break;
                     case 'export_validated_links':
                         this.exportAcceptedLinks = this.exportValidatedLinks;
                         this.exportRejectedLinks = this.exportValidatedLinks;
-                        this.exportMixedLinks = this.exportValidatedLinks;
-                        this.exportUnsureLinks = this.exportValidatedLinks;
-                        this.exportAllLinks = this.exportValidatedLinks && this.exportNotValidatedLinks;
+                        this.exportDisputedLinks = this.exportValidatedLinks;
+                        this.exportUncertainLinks = this.exportValidatedLinks;
+                        this.exportAllLinks = this.exportValidatedLinks && this.exportUncheckedLinks;
                         if (!this.exportAllLinks)
-                            this.exportNotValidatedLinks = true;
+                            this.exportUncheckedLinks = true;
                         break;
-                    case 'export_not_validated_links':
-                        this.exportAllLinks = this.exportValidatedLinks && this.exportNotValidatedLinks;
+                    case 'export_unchecked_links':
+                        this.exportAllLinks = this.exportValidatedLinks && this.exportUncheckedLinks;
                         if (!this.exportAllLinks)
                             this.exportValidatedLinks = true;
                         break;
                     case 'export_accepted_links':
                     case 'export_rejected_links':
-                    case 'export_mixed_links':
-                    case 'export_unsure_links':
+                    case 'export_disputed_links':
+                    case 'export_uncertain_links':
                         this.exportValidatedLinks = this.exportAcceptedLinks && this.exportRejectedLinks
-                            && this.exportMixedLinks && this.exportUnsureLinks;
+                            && this.exportDisputedLinks && this.exportUncertainLinks;
                         if (!this.exportAllLinks)
-                            this.exportNotValidatedLinks = true;
+                            this.exportUncheckedLinks = true;
                         break;
                 }
             },
@@ -407,9 +404,9 @@
 
                 if (this.exportAcceptedLinks) params.push('valid=accepted');
                 if (this.exportRejectedLinks) params.push('valid=rejected');
-                if (this.exportMixedLinks) params.push('valid=mixed');
-                if (this.exportUnsureLinks) params.push('valid=not_sure');
-                if (this.exportNotValidatedLinks) params.push('valid=not_validated');
+                if (this.exportDisputedLinks) params.push('valid=disputed');
+                if (this.exportUncertainLinks) params.push('valid=uncertain');
+                if (this.exportUncheckedLinks) params.push('valid=unchecked');
 
                 return this.$root.getExportCsvLink(this.type, this.spec.id, params);
             },
@@ -424,9 +421,9 @@
 
                 if (this.exportAcceptedLinks) params.push('valid=accepted');
                 if (this.exportRejectedLinks) params.push('valid=rejected');
-                if (this.exportMixedLinks) params.push('valid=mixed');
-                if (this.exportUnsureLinks) params.push('valid=not_sure');
-                if (this.exportNotValidatedLinks) params.push('valid=not_validated');
+                if (this.exportDisputedLinks) params.push('valid=disputed');
+                if (this.exportUncertainLinks) params.push('valid=uncertain');
+                if (this.exportUncheckedLinks) params.push('valid=unchecked');
 
                 params.push(`reification=${this.reification}`);
 

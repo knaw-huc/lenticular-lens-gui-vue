@@ -87,10 +87,10 @@
           </div>
 
           <div class="col-auto">
-            <button type="button" class="btn btn-sm btn-warning m-1" :disabled="isUpdating" title="Not sure (space)"
-                    @click="$emit('not_sure')">
+            <button type="button" class="btn btn-sm btn-warning m-1" :disabled="isUpdating" title="Uncertain (space)"
+                    @click="$emit('uncertain')">
               <fa-icon icon="question"/>
-              Not sure
+              Uncertain
             </button>
           </div>
 
@@ -178,9 +178,9 @@
                         return 'bg-success';
                     case 'rejected':
                         return 'bg-danger';
-                    case 'not_sure':
+                    case 'uncertain':
                         return 'bg-warning';
-                    case 'mixed':
+                    case 'disputed':
                         return 'bg-warning';
                     default:
                         return 'bg-white';

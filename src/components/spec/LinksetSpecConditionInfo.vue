@@ -47,7 +47,7 @@
         </div>
       </template>
 
-      <div v-if="condition.method.name === 'INTERMEDIATE'" class="font-weight-bold mx-0 mt-1 mb-0">
+      <div v-if="condition.method.name === 'intermediate'" class="font-weight-bold mx-0 mt-1 mb-0">
         using <span class="text-secondary">{{ method.label }}</span> where
 
         <div class="row align-items-center m-0">
@@ -88,7 +88,7 @@
         data() {
             return {
                 tNorms: props.tNorms,
-                tConorms: props.tConorms,
+                sNorms: props.sNorms,
                 visible: true,
             };
         },
@@ -173,8 +173,8 @@
                         html += ' using a t-norm of';
                         html += ` <span class="text-secondary">${this.tNorms[this.condition.fuzzy.t_norm]}</span>`;
 
-                        html += ' and a t-conorm of';
-                        html += ` <span class="text-secondary">${this.tConorms[this.condition.fuzzy.t_conorm]}</span>`;
+                        html += ' and a s-norm of';
+                        html += ` <span class="text-secondary">${this.sNorms[this.condition.fuzzy.s_norm]}</span>`;
 
                         if (this.condition.fuzzy.threshold > 0) {
                             html += ' having a threshold of';
@@ -183,8 +183,8 @@
                     }
                 }
                 else if (this.usingFuzzyLogic) {
-                    html += ' using a t-conorm of';
-                    html += ` <span class="text-secondary">${this.tConorms[this.condition.fuzzy.t_conorm]}</span>`;
+                    html += ' using a s-norm of';
+                    html += ` <span class="text-secondary">${this.sNorms[this.condition.fuzzy.s_norm]}</span>`;
 
                     if (this.condition.fuzzy.threshold > 0) {
                         html += ' having a threshold of';

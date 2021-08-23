@@ -77,9 +77,9 @@
                    ref="lensGroupComponent">
           <template v-slot:box-slot="boxElement">
             <div v-if="useFuzzyLogic && !isOnlyLeft(boxElement.element.type)" class="col-auto">
-              <select :id="'t_conorm_' + boxElement.index" class="form-control form-control-sm"
-                      v-model="boxElement.element.t_conorm">
-                <option v-for="(description, key) in tConorms" :value="key">
+              <select :id="'s_norm_' + boxElement.index" class="form-control form-control-sm"
+                      v-model="boxElement.element.s_norm">
+                <option v-for="(description, key) in sNorms" :value="key">
                   {{ description }}
                 </option>
               </select>
@@ -129,7 +129,7 @@
                 lensOptions: props.lensOptions,
                 lensOptionGroups: props.lensOptionGroups,
                 lensOptionDescriptions: props.lensOptionDescriptions,
-                tConorms: props.tConorms,
+                sNorms: props.sNorms,
             };
         },
         computed: {
@@ -155,7 +155,7 @@
             },
 
             groupInclude() {
-                return {t_conorm: this.useFuzzyLogic ? 'MAXIMUM_T_CONORM' : '', threshold: 0};
+                return {s_norm: this.useFuzzyLogic ? 'maximum_s_norm' : '', threshold: 0};
             },
         },
         methods: {
@@ -164,7 +164,7 @@
             },
 
             isOnlyLeft(type) {
-                return type === 'DIFFERENCE' || type.startsWith('IN_SET');
+                return type === 'difference' || type.startsWith('in_set');
             },
 
             onToggle(isOpen) {
@@ -195,11 +195,11 @@
             updateLogicBoxTypes(elements) {
                 if (elements.hasOwnProperty('type')) {
                     if (this.useFuzzyLogic) {
-                        this.$set(elements, 't_conorm', 'MAXIMUM_T_CONORM');
+                        this.$set(elements, 's_norm', 'maximum_s_norm');
                         this.$set(elements, 'threshold', 0);
                     }
                     else {
-                        this.$set(elements, 't_conorm', '');
+                        this.$set(elements, 's_norm', '');
                         this.$delete(elements, 'threshold');
                     }
                 }
@@ -229,7 +229,7 @@
             },
         },
         mounted() {
-            this.useFuzzyLogic = !!this.lensSpec.specs.tConorm;
+            this.useFuzzyLogic = !!this.lensSpec.specs.sNorm;
         },
         watch: {
             useFuzzyLogic() {
