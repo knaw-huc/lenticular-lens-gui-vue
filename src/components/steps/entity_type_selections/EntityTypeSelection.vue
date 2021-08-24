@@ -234,7 +234,7 @@
                         || this.entityTypeSelection.dataset.collection_id;
                     return `${datasetTitle} [type: ${collectionTitle}]`;
                 }
-                return 'Entity-type selection ' + (this.entityTypeSelection.id + 1);
+                return 'Entity-type selection ' + this.entityTypeSelection.id;
             },
 
             isUsedInLinkset() {
