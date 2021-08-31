@@ -354,16 +354,6 @@ export default {
                 this.entityTypeSelections = entityTypeSelections.map(ets => {
                     if (!ets.created)
                         ets.created = new Date().toISOString();
-
-                    const conditions = [ets.filter];
-                    while (conditions.length > 0) {
-                        const condition = conditions.pop();
-                        condition.type = condition.type.toLowerCase();
-
-                        conditions.push(...condition.conditions
-                            .filter(c => c.hasOwnProperty('type') && c.hasOwnProperty('conditions')));
-                    }
-
                     return ets;
                 });
             }
@@ -372,51 +362,6 @@ export default {
                 this.linksetSpecs = copy(this.job.linkset_specs).map(linksetSpec => {
                     if (!linksetSpec.created)
                         linksetSpec.created = new Date().toISOString();
-
-                    const conditions = [linksetSpec.methods];
-                    const methods = [];
-                    while (conditions.length > 0 || methods.length > 0) {
-                        if (conditions.length > 0) {
-                            const condition = conditions.pop();
-                            condition.type = condition.type.toLowerCase();
-
-                            conditions.push(...condition.conditions
-                                .filter(c => c.hasOwnProperty('type') && c.hasOwnProperty('conditions')));
-                            methods.push(...condition.conditions
-                                .filter(c => !c.hasOwnProperty('type') && !c.hasOwnProperty('conditions')));
-                        }
-
-                        if (methods.length > 0) {
-                            const method = methods.pop();
-
-                            if (method.hasOwnProperty('fuzzy')) {
-                                if (method.fuzzy.hasOwnProperty('t_conorm')) {
-                                    method.fuzzy.s_norm = method.fuzzy.t_conorm.toLowerCase();
-                                    delete method.fuzzy.t_conorm;
-                                }
-
-                                if (method.fuzzy.hasOwnProperty('s_norm') && method.fuzzy.s_norm.endsWith('t_conorm'))
-                                    method.fuzzy.s_norm = method.fuzzy.s_norm.replace('t_conorm', 's_norm');
-
-                                if (method.fuzzy.t_norm)
-                                    method.fuzzy.t_norm = method.fuzzy.t_norm.toLowerCase();
-                            }
-
-                            method.method.name = method.method.name.toLowerCase();
-                            if (method.sim_method.name)
-                                method.sim_method.name = method.sim_method.name.toLowerCase();
-
-                            method.sources.transformers.forEach(t => t.name = t.name.toLowerCase());
-                            method.targets.transformers.forEach(t => t.name = t.name.toLowerCase());
-                            Object.values(method.sources.properties).flat(1).forEach(p => {
-                                p.transformers.forEach(t => t.name = t.name.toLowerCase());
-                            });
-                            Object.values(method.targets.properties).flat(1).forEach(p => {
-                                p.transformers.forEach(t => t.name = t.name.toLowerCase());
-                            });
-                        }
-                    }
-
                     return linksetSpec;
                 });
 
@@ -424,24 +369,6 @@ export default {
                 this.lensSpecs = copy(this.job.lens_specs).map(lensSpec => {
                     if (!lensSpec.created)
                         lensSpec.created = new Date().toISOString();
-
-                    const elements = [lensSpec.specs];
-                    while (elements.length > 0) {
-                        const element = elements.pop();
-                        element.type = element.type.toLowerCase();
-
-                        if (element.hasOwnProperty('t_conorm')) {
-                            element.s_norm = element.t_conorm.toLowerCase();
-                            delete element.t_conorm;
-                        }
-
-                        if (element.hasOwnProperty('s_norm') && element.s_norm.endsWith('t_conorm'))
-                            element.s_norm = element.s_norm.replace('t_conorm', 's_norm');
-
-                        elements.push(...element.elements
-                            .filter(c => c.hasOwnProperty('type') && c.hasOwnProperty('elements')));
-                    }
-
                     return lensSpec;
                 });
 
@@ -451,16 +378,6 @@ export default {
                         view.created = new Date().toISOString();
                     if (!view.prefix_mappings)
                         view.prefix_mappings = {};
-
-                    const conditions = view.filters.map(f => f.filter);
-                    while (conditions.length > 0) {
-                        const condition = conditions.pop();
-                        condition.type = condition.type.toLowerCase();
-
-                        conditions.push(...condition.conditions
-                            .filter(c => c.hasOwnProperty('type') && c.hasOwnProperty('conditions')));
-                    }
-
                     return view;
                 });
 
