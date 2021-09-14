@@ -511,18 +511,34 @@ export default {
         async getLinksTotals(type, id, props) {
             props = {applyFilters: true, uris: [], clusterIds: [], min: undefined, max: undefined, ...props};
 
-            const params = [`apply_filters=${props.applyFilters}`];
+            // const params = [`apply_filters=${props.applyFilters}`];
+
+            const body = {
+                apply_filters: props.applyFilters,
+                uri: [],
+                cluster_id: [],
+            };
+
+            // if (props.uris && props.uris.length > 0)
+            //     props.uris.forEach(uri => params.push(`uri=${encodeURIComponent(uri)}`));
 
             if (props.uris && props.uris.length > 0)
-                props.uris.forEach(uri => params.push(`uri=${encodeURIComponent(uri)}`));
+                body.uri = props.uris;
+
+            // if (props.clusterIds && props.clusterIds.length > 0)
+            //     props.clusterIds.forEach(clusterId => params.push(`cluster_id=${encodeURIComponent(clusterId)}`));
 
             if (props.clusterIds && props.clusterIds.length > 0)
-                props.clusterIds.forEach(clusterId => params.push(`cluster_id=${encodeURIComponent(clusterId)}`));
+                body.cluster_id = props.clusterIds;
 
-            if (props.min && props.min > 0) params.push(`min=${props.min}`);
-            if (props.max && props.max < 1) params.push(`max=${props.max}`);
+            // if (props.min && props.min > 0) params.push(`min=${props.min}`);
+            // if (props.max && props.max < 1) params.push(`max=${props.max}`);
 
-            return callApi(`/job/${this.job.job_id}/links_totals/${type}/${id}?${params.join('&')}`);
+            if (props.min && props.min > 0) body.min = props.min;
+            if (props.max && props.max < 1) body.max = props.max;
+
+            // return callApi(`/job/${this.job.job_id}/links_totals/${type}/${id}?${params.join('&')}`);
+            return callApi(`/job/${this.job.job_id}/links_totals/${type}/${id}`, body);
         },
 
         async getLinks(type, id, props, limit = undefined, offset = 0) {
@@ -532,30 +548,57 @@ export default {
                 uris: [], clusterIds: [], min: undefined, max: undefined, sort: 'desc', ...props
             };
 
-            const params = [
-                `with_properties=${props.withProperties}`,
-                `apply_filters=${props.applyFilters}`
-            ];
+            // const params = [
+            //     `with_properties=${props.withProperties}`,
+            //     `apply_filters=${props.applyFilters}`
+            // ];
 
-            if (props.accepted) params.push('valid=accepted');
-            if (props.rejected) params.push('valid=rejected');
-            if (props.uncertain) params.push('valid=uncertain');
-            if (props.unchecked) params.push('valid=unchecked');
-            if (props.disputed) params.push('valid=disputed');
+            const body = {
+                with_properties: props.withProperties,
+                apply_filters: props.applyFilters,
+                valid: [],
+                uri: [],
+                cluster_id: [],
+            };
+
+            // if (props.accepted) params.push('valid=accepted');
+            // if (props.rejected) params.push('valid=rejected');
+            // if (props.uncertain) params.push('valid=uncertain');
+            // if (props.unchecked) params.push('valid=unchecked');
+            // if (props.disputed) params.push('valid=disputed');
+
+            if (props.accepted) body.valid.push('accepted');
+            if (props.rejected) body.valid.push('rejected');
+            if (props.uncertain) body.valid.push('uncertain');
+            if (props.unchecked) body.valid.push('unchecked');
+            if (props.disputed) body.valid.push('disputed');
+
+            // if (props.uris && props.uris.length > 0)
+            //     props.uris.forEach(uri => params.push(`uri=${encodeURIComponent(uri)}`));
+            // if (props.clusterIds && props.clusterIds.length > 0)
+            //     props.clusterIds.forEach(clusterId => params.push(`cluster_id=${encodeURIComponent(clusterId)}`));
 
             if (props.uris && props.uris.length > 0)
-                props.uris.forEach(uri => params.push(`uri=${encodeURIComponent(uri)}`));
+                body.uri = props.uris;
             if (props.clusterIds && props.clusterIds.length > 0)
-                props.clusterIds.forEach(clusterId => params.push(`cluster_id=${encodeURIComponent(clusterId)}`));
+                body.cluster_id = props.clusterIds;
 
-            if (props.min && props.min > 0) params.push(`min=${props.min}`);
-            if (props.max && props.max < 1) params.push(`max=${props.max}`);
-            if (props.sort) params.push(`sort=${props.sort}`);
+            // if (props.min && props.min > 0) params.push(`min=${props.min}`);
+            // if (props.max && props.max < 1) params.push(`max=${props.max}`);
+            // if (props.sort) params.push(`sort=${props.sort}`);
 
-            if (limit) params.push(`limit=${limit}`);
-            if (offset) params.push(`offset=${offset}`);
+            if (props.min && props.min > 0) body.min = props.min;
+            if (props.max && props.max < 1) body.max = props.max;
+            if (props.sort) body.sort = props.sort;
 
-            return callApi(`/job/${this.job.job_id}/links/${type}/${id}?${params.join('&')}`);
+            // if (limit) params.push(`limit=${limit}`);
+            // if (offset) params.push(`offset=${offset}`);
+
+            if (limit) body.limit = limit;
+            if (offset) body.offset = offset;
+
+            // return callApi(`/job/${this.job.job_id}/links/${type}/${id}?${params.join('&')}`);
+            return callApi(`/job/${this.job.job_id}/links/${type}/${id}`, body);
         },
 
         async getClustersTotals(type, id, props) {
@@ -564,24 +607,46 @@ export default {
                 minSize: undefined, maxSize: undefined, minCount: undefined, maxCount: undefined, ...props
             };
 
-            const params = [`apply_filters=${props.applyFilters}`];
+            // const params = [`apply_filters=${props.applyFilters}`];
+
+            const body = {
+                apply_filters: props.applyFilters,
+                uri: [],
+                cluster_id: [],
+            };
+
+            // if (props.uris && props.uris.length > 0)
+            //     props.uris.forEach(uri => params.push(`uri=${encodeURIComponent(uri)}`));
 
             if (props.uris && props.uris.length > 0)
-                props.uris.forEach(uri => params.push(`uri=${encodeURIComponent(uri)}`));
+                body.uri = props.uris;
+
+            // if (props.clusterIds && props.clusterIds.length > 0)
+            //     props.clusterIds.forEach(clusterId => params.push(`cluster_id=${encodeURIComponent(clusterId)}`));
 
             if (props.clusterIds && props.clusterIds.length > 0)
-                props.clusterIds.forEach(clusterId => params.push(`cluster_id=${encodeURIComponent(clusterId)}`));
+                body.cluster_id = props.clusterIds;
 
-            if (props.min && props.min > 0) params.push(`min=${props.min}`);
-            if (props.max && props.max < 1) params.push(`max=${props.max}`);
+            // if (props.min && props.min > 0) params.push(`min=${props.min}`);
+            // if (props.max && props.max < 1) params.push(`max=${props.max}`);
 
-            if (props.minSize) params.push(`min_size=${props.minSize}`);
-            if (props.maxSize) params.push(`max_size=${props.maxSize}`);
+            if (props.min && props.min > 0) body.min = props.min;
+            if (props.max && props.max < 1) body.max = props.max;
 
-            if (props.minCount) params.push(`min_count=${props.minCount}`);
-            if (props.maxCount) params.push(`max_count=${props.maxCount}`);
+            // if (props.minSize) params.push(`min_size=${props.minSize}`);
+            // if (props.maxSize) params.push(`max_size=${props.maxSize}`);
 
-            return callApi(`/job/${this.job.job_id}/clusters_totals/${type}/${id}?${params.join('&')}`);
+            if (props.minSize) body.min_size = props.minSize;
+            if (props.maxSize) body.max_size = props.maxSize;
+
+            // if (props.minCount) params.push(`min_count=${props.minCount}`);
+            // if (props.maxCount) params.push(`max_count=${props.maxCount}`);
+
+            if (props.minCount) body.min_count = props.minCount;
+            if (props.maxCount) body.max_count = props.maxCount;
+
+            // return callApi(`/job/${this.job.job_id}/clusters_totals/${type}/${id}?${params.join('&')}`);
+            return callApi(`/job/${this.job.job_id}/clusters_totals/${type}/${id}`, body);
         },
 
         async getClusters(type, id, props, limit = undefined, offset = 0) {
@@ -591,31 +656,58 @@ export default {
                 minCount: undefined, maxCount: undefined, sort: undefined, ...props
             };
 
-            const params = [
-                `with_properties=${props.withProperties}`,
-                `apply_filters=${props.applyFilters}`
-            ];
+            // const params = [
+            //     `with_properties=${props.withProperties}`,
+            //     `apply_filters=${props.applyFilters}`
+            // ];
+
+            const body = {
+                with_properties: props.withProperties,
+                apply_filters: props.applyFilters,
+                uri: [],
+                cluster_id: [],
+            };
+
+            // if (props.uris && props.uris.length > 0)
+            //     props.uris.forEach(uri => params.push(`uri=${encodeURIComponent(uri)}`));
+            // if (props.clusterIds && props.clusterIds.length > 0)
+            //     props.clusterIds.forEach(clusterId => params.push(`cluster_id=${encodeURIComponent(clusterId)}`));
 
             if (props.uris && props.uris.length > 0)
-                props.uris.forEach(uri => params.push(`uri=${encodeURIComponent(uri)}`));
+                body.uri = props.uris;
             if (props.clusterIds && props.clusterIds.length > 0)
-                props.clusterIds.forEach(clusterId => params.push(`cluster_id=${encodeURIComponent(clusterId)}`));
+                body.cluster_id = props.clusterIds;
 
-            if (props.min && props.min > 0) params.push(`min=${props.min}`);
-            if (props.max && props.max < 1) params.push(`max=${props.max}`);
+            // if (props.min && props.min > 0) params.push(`min=${props.min}`);
+            // if (props.max && props.max < 1) params.push(`max=${props.max}`);
 
-            if (props.minSize) params.push(`min_size=${props.minSize}`);
-            if (props.maxSize) params.push(`max_size=${props.maxSize}`);
+            if (props.min && props.min > 0) body.min = props.min;
+            if (props.max && props.max < 1) body.max = props.max;
 
-            if (props.minCount) params.push(`min_count=${props.minCount}`);
-            if (props.maxCount) params.push(`max_count=${props.maxCount}`);
+            // if (props.minSize) params.push(`min_size=${props.minSize}`);
+            // if (props.maxSize) params.push(`max_size=${props.maxSize}`);
 
-            if (props.sort) params.push(`sort=${props.sort}`);
+            if (props.minSize) body.min_size = props.minSize;
+            if (props.maxSize) body.max_size = props.maxSize;
 
-            if (limit) params.push(`limit=${limit}`);
-            if (offset) params.push(`offset=${offset}`);
+            // if (props.minCount) params.push(`min_count=${props.minCount}`);
+            // if (props.maxCount) params.push(`max_count=${props.maxCount}`);
 
-            return callApi(`/job/${this.job.job_id}/clusters/${type}/${id}?${params.join('&')}`);
+            if (props.minCount) body.min_count = props.minCount;
+            if (props.maxCount) body.max_count = props.maxCount;
+
+            // if (props.sort) params.push(`sort=${props.sort}`);
+
+            if (props.sort) body.sort = props.sort;
+
+            // if (limit) params.push(`limit=${limit}`);
+            // if (offset) params.push(`offset=${offset}`);
+
+            if (limit) body.limit = limit;
+            if (offset) body.offset = offset;
+
+            // return callApi(`/job/${this.job.job_id}/clusters/${type}/${id}?${params.join('&')}`);
+            return callApi(`/job/${this.job.job_id}/clusters/${type}/${id}`, body);
         },
 
         async getClusterGraphs(type, id, clusterId) {
@@ -686,7 +778,8 @@ export default {
             if (this.datasets.hasOwnProperty(graphqlEndpoint))
                 return;
 
-            this.datasets[graphqlEndpoint] = await callApi(`/datasets?endpoint=${graphqlEndpoint}`);
+            const datasets = await callApi(`/datasets?endpoint=${graphqlEndpoint}`);
+            this.$set(this.datasets, graphqlEndpoint, datasets);
         },
 
         async startDownload(datasetId, collectionId, graphqlEndpoint) {
