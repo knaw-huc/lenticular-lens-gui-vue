@@ -22,7 +22,7 @@
                 Configure
               </label>
 
-              <label v-if="method.items.size > 0 && method.accepts_similarity_method"
+              <label v-if="method.items.size > 0 && method.type === 'normalizer'"
                      class="btn btn-secondary btn-sm" v-bind:class="{'active': applySimMethod}">
                 <input type="checkbox" autocomplete="off" v-model="applySimMethod"/>
                 Apply similarity method
@@ -156,18 +156,18 @@
                 if (this.condition.method.name && this.matchingMethods.has(this.condition.method.name))
                     return this.matchingMethods.get(this.condition.method.name);
 
-                return {label: '', accepts_similarity_method: false, is_similarity_method: false, items: new Map()};
+                return {label: '', type: null, items: new Map()};
             },
 
             simMethod() {
                 if (this.condition.sim_method.name && this.matchingMethods.has(this.condition.sim_method.name))
                     return this.matchingMethods.get(this.condition.sim_method.name);
 
-                return {label: '', accepts_similarity_method: false, is_similarity_method: false, items: new Map()};
+                return {label: '', type: null, items: new Map()};
             },
 
             allowFuzzyLogic() {
-                return this.useFuzzyLogic && (this.method.is_similarity_method || this.simMethod.is_similarity_method);
+                return this.useFuzzyLogic && (this.method.type === 'similarity' || this.simMethod.type === 'similarity');
             },
 
             unusedEntityTypeSelections() {
@@ -184,7 +184,7 @@
 
             showConfiguration() {
                 return (this.configureMatching && this.method.items.size > 0) ||
-                    (this.applySimMethod && this.method.items.size > 0 && this.method.accepts_similarity_method) ||
+                    (this.applySimMethod && this.method.items.size > 0 && this.method.type === 'normalizer') ||
                     this.applyListMatching;
             },
         },

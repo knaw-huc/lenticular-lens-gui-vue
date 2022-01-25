@@ -925,6 +925,7 @@ export default {
         this.mainSocket = io(getLenticularLensApi());
         this.mainSocket.on('timbuctoo_update', e => this.timbuctooUpdate(JSON.parse(e)));
         this.mainSocket.on('timbuctoo_delete', _ => this.resetDownloads());
+        this.mainSocket.on('extension_update', _ => this.loadMethods());
         this.mainSocket.io.on('reconnect', () => this.resetDownloads());
     },
     beforeDestroy() {

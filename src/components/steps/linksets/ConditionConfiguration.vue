@@ -188,7 +188,7 @@
         computed: {
             similarityMethods() {
                 return Array.from(this.$root.methods.matching_methods.keys())
-                    .filter(key => this.$root.methods.matching_methods.get(key).is_similarity_method)
+                    .filter(key => this.$root.methods.matching_methods.get(key).type === 'similarity')
                     .reduce((obj, key) => {
                         obj.set(key, this.$root.methods.matching_methods.get(key));
                         return obj;
@@ -200,7 +200,7 @@
             },
 
             showSimMatchingConfig() {
-                return this.applySimMethod && this.method.items.size > 0 && this.method.accepts_similarity_method;
+                return this.applySimMethod && this.method.items.size > 0 && this.method.type === 'normalizer';
             },
 
             showLabel() {
@@ -220,7 +220,7 @@
             validateConditionConfiguration() {
                 const simMethodNameValid = this.validateField('sim_method_name',
                     !(this.applySimMethod && this.method.items.size > 0
-                        && this.method.accepts_similarity_method) || this.condition.sim_method.name);
+                        && this.method.type === 'normalizer') || this.condition.sim_method.name);
 
                 const methodConfigValid = this.validateField('method_config',
                     this.$refs.methodConfig ? this.$refs.methodConfig.validateConditionMethod() : true);
