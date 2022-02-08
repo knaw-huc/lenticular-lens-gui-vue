@@ -73,9 +73,11 @@ export default {
                 created: new Date().toISOString(),
                 label: 'Linkset ' + (this.linksetSpecs.length + 1),
                 description: '',
+                matching: '',
                 use_counter: true,
                 sources: [],
                 targets: [],
+                extract: {},
                 methods: {
                     type: 'and',
                     conditions: [],

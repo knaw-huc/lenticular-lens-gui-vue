@@ -9,6 +9,7 @@
             :has-additional-buttons="hasAdditionalButtons"
             :allow-delete="allowDelete"
             :show-info="showInfo"
+            :allow-links-only="allowLinksOnly"
             @clone="$emit('clone')"
             @delete="$emit('delete')"
             ref="property">
@@ -47,6 +48,10 @@
             showInfo: {
                 type: Boolean,
                 default: true,
+            },
+            allowLinksOnly: {
+                type: Boolean,
+                default: false,
             },
         },
         methods: {
