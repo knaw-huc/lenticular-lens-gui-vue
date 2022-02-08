@@ -179,6 +179,10 @@
                 type: Boolean,
                 default: true,
             },
+            allowLinksOnly: {
+                type: Boolean,
+                default: false,
+            },
         },
         computed: {
             dataset() {
@@ -218,6 +222,12 @@
             props() {
                 return getPropertyInfo(this.property, this.collectionId, this.dataset.collections).map(prop => ({
                     ...prop,
+                    properties: this.allowLinksOnly && prop.properties
+                        ? Object.keys(prop.properties).reduce((acc, property) => {
+                            if (prop.properties[property].name === 'uri' || prop.properties[property].isLink)
+                                acc[property] = prop.properties[property];
+                            return acc;
+                        }, {}) : prop.properties,
                     collectionFilterBy: this.collectionFilterBy(prop.collections),
                     propertyFilterBy: this.propertyFilterBy(prop.properties),
                 }));
@@ -257,11 +267,13 @@
                     const s = search.toLowerCase();
                     const property = properties.hasOwnProperty(option) ? properties[option] : null;
 
+                    const linksOnlyMatches = !this.allowLinksOnly || (property &&
+                        (property.isLink || property.name === 'uri'));
                     const optionMatches = (option || '').toLowerCase().indexOf(s) > -1;
                     const shortUriMatches = property && (property.shortenedUri || '').toLowerCase().indexOf(s) > -1;
                     const uriMatches = property && (property.uri || '').toLowerCase().indexOf(s) > -1;
 
-                    return optionMatches || shortUriMatches || uriMatches;
+                    return linksOnlyMatches && (optionMatches || shortUriMatches || uriMatches);
                 };
             },
 

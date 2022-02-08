@@ -87,9 +87,13 @@ export default {
                 created: new Date().toISOString(),
                 label: 'Linkset ' + (this.linksetSpecs.length + 1),
                 description: '',
+                matching: '',
                 use_counter: true,
                 sources: [],
                 targets: [],
+                extract: {
+                    elements: {},
+                },
                 methods: {
                     type: 'and',
                     conditions: [],
@@ -105,8 +109,6 @@ export default {
                 description: '',
                 specs: {
                     type: 'union',
-                    s_norm: '',
-                    threshold: 0,
                     elements: [],
                 },
             });
@@ -406,9 +408,17 @@ export default {
                     return view;
                 });
 
-            this.linksetSpecs.forEach(linksetSpec =>
-                this.updateView(linksetSpec.id, 'linkset',
-                    new Set([...linksetSpec.sources, ...linksetSpec.targets])));
+            this.linksetSpecs.forEach(linksetSpec => {
+                if (linksetSpec.matching === 'methods')
+                    this.updateView(linksetSpec.id, 'linkset',
+                        new Set([...linksetSpec.sources, ...linksetSpec.targets]));
+                else
+                    this.updateView(linksetSpec.id, 'linkset',
+                        new Set(Object.values(linksetSpec.extract.elements).reduce((acc, element) => {
+                            acc.push(...element.entity_type_selections);
+                            return acc;
+                        }, [])));
+            });
 
             this.lensSpecs.forEach(lensSpec =>
                 this.updateView(lensSpec.id, 'lens',

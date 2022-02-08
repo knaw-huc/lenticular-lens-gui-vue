@@ -30,7 +30,7 @@
 
       <slot name="box-slot" v-bind:index="index" v-bind:element="element"/>
 
-      <div class="col-auto ml-auto">
+      <div v-if="!controlledElements || logicBoxElements.length === 0 || !isRoot" class="col-auto ml-auto">
         <div class="row">
           <div v-if="!isRoot && (logicBoxElements.length > 0 || controlledElements)" class="col-auto">
             <button-delete @click="remove" title="Delete" class="pt-1 pr-0"/>

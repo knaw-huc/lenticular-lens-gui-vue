@@ -62,8 +62,27 @@
       </small>
     </sub-card>
 
+    <sub-card label="Matching">
+      <div class="custom-control custom-switch mt-3">
+        <input type="radio" class="custom-control-input" autocomplete="off" :id="'matching_extract_' + linksetSpec.id"
+               value="extract" v-model="linksetSpec.matching" @change="updateType"/>
+        <label class="custom-control-label" :for="'matching_extract_' + linksetSpec.id">
+          Extract existing links
+        </label>
+      </div>
+
+      <div class="custom-control custom-switch">
+        <input type="radio" class="custom-control-input" autocomplete="off" :id="'matching_methods_' + linksetSpec.id"
+               value="methods" v-model="linksetSpec.matching" @change="updateType"/>
+        <label class="custom-control-label" :for="'matching_methods_' + linksetSpec.id">
+          Find links using matching methods
+        </label>
+      </div>
+    </sub-card>
+
     <fieldset :disabled="!!linkset">
-      <sub-card label="Sources" :has-info="true" add-button="Add an Entity-type Selection as a Source"
+      <sub-card v-if="linksetSpec.matching !== ''" label="Sources" :has-info="true"
+                add-button="Add an Entity-type Selection as a Source"
                 :hasError="errors.includes('sources') || errors.includes('sources_select')"
                 @add="addEntityTypeSelection('sources')">
         <template v-slot:info>
@@ -75,10 +94,8 @@
             <entity-type-selection
                 v-for="(source, index) in linksetSpec.sources"
                 :key="index"
-                :id="'source_' + index"
-                :linkset-spec="linksetSpec"
                 :entity-type-selection="$root.getEntityTypeSelectionById(source)"
-                selection-key="sources"
+                :selected-ids="linksetSpec.sources"
                 @input="updateEntityTypeSelection('sources', index, $event)"
                 @remove="updateEntityTypeSelection('sources', index)"
                 ref="sourceComponents"/>
@@ -90,7 +107,8 @@
         </div>
       </sub-card>
 
-      <sub-card label="Targets" :has-info="true" add-button="Add an Entity-type Selection as a Target"
+      <sub-card v-if="linksetSpec.matching === 'methods'" label="Targets" :has-info="true"
+                add-button="Add an Entity-type Selection as a Target"
                 :hasError="errors.includes('targets') || errors.includes('targets_select')"
                 @add="addEntityTypeSelection('targets', $event)">
         <template v-slot:info>
@@ -102,10 +120,8 @@
             <entity-type-selection
                 v-for="(target, index) in linksetSpec.targets"
                 :key="index"
-                :id="'target_' + index"
-                :linkset-spec="linksetSpec"
                 :entity-type-selection="$root.getEntityTypeSelectionById(target)"
-                selection-key="targets"
+                :selected-ids="linksetSpec.targets"
                 @input="updateEntityTypeSelection('targets', index, $event)"
                 @remove="updateEntityTypeSelection('targets', index)"
                 ref="targetComponents"/>
@@ -117,7 +133,56 @@
         </div>
       </sub-card>
 
-      <sub-card label="Matching Methods" :has-columns="true" :hasError="errors.includes('matching_methods')">
+      <sub-card v-if="linksetSpec.matching === 'extract'" label="Existing links" :hasError="errors.includes('extract')">
+        <template v-slot:columns>
+          <div class="col-auto">
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" autocomplete="off"
+                     :id="'fuzzy_linkset_' + linksetSpec.id" v-model="useFuzzyLogic"/>
+              <label class="custom-control-label" :for="'fuzzy_linkset_' + linksetSpec.id">Use fuzzy logic</label>
+            </div>
+          </div>
+        </template>
+
+        <div class="position-relative shadow border bg-secondary-light p-3 mt-3"
+             v-bind:class="[{'is-invalid': errors.includes('extract')}]">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <fa-icon icon="chevron-down" size="lg" v-b-toggle="'extraction_' + _uid"></fa-icon>
+            </div>
+
+            <template
+                v-if="useFuzzyLogic && Object.values(linksetSpec.extract.elements).find(el => el.strengths.length > 0)">
+              <div class="col">
+                <select :id="'extract_s_norm_' + _uid" class="form-control form-control-sm"
+                        v-model="linksetSpec.extract.s_norm">
+                  <option v-for="(description, key) in allSNorms" :value="key">
+                    {{ description }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="col-auto">
+                <range :id="'extract_threshold_' + _uid" v-model.number="linksetSpec.extract.threshold"
+                       label="Threshold" :allow-zero="false"/>
+              </div>
+            </template>
+          </div>
+
+          <b-collapse visible :id="'extraction_' + _uid" :ref="'extraction_' + _uid">
+            <extraction v-for="(extraction, etsId) in linksetSpec.extract.elements"
+                        :key="etsId"
+                        :entity-type-selection="$root.getEntityTypeSelectionById(etsId)"
+                        :extraction="extraction"
+                        :use-fuzzy-logic="useFuzzyLogic"
+                        @update="updateView"
+                        ref="extractions"/>
+          </b-collapse>
+        </div>
+      </sub-card>
+
+      <sub-card v-if="linksetSpec.matching === 'methods'" label="Matching Methods" :has-columns="true"
+                :hasError="errors.includes('matching_methods')">
         <template v-slot:columns>
           <div class="col-auto">
             <div class="custom-control custom-switch">
@@ -164,6 +229,7 @@
 
     import Status from "./Status";
     import Condition from "./Condition";
+    import Extraction from "./Extraction";
     import EntityTypeSelection from "./EntityTypeSelection";
 
     export default {
@@ -176,6 +242,7 @@
             Status,
             EntityTypeSelection,
             Condition,
+            Extraction,
             LogicBox
         },
         props: {
@@ -188,6 +255,7 @@
                 useFuzzyLogic: false,
                 tNorms: Object.keys(props.tNorms),
                 sNorms: Object.keys(props.sNorms),
+                allSNorms: props.sNorms,
                 fuzzyLogicOptions: {...props.tNorms, ...props.sNorms},
                 fuzzyLogicOptionGroups: props.fuzzyLogicOptionGroups,
             };
@@ -217,26 +285,37 @@
         methods: {
             validateLinkset() {
                 const sourcesValid = this.validateField('sources', this.linksetSpec.sources.length > 0);
-                const targetsValid = this.validateField('targets', this.linksetSpec.targets.length > 0);
-
                 const sourcesSelectValid = this.validateField('sources_select',
                     !this.$refs.sourceComponents
                         .map(sourceComponent => sourceComponent.validateEntityTypeSelection())
                         .includes(false)
                 );
-                const targetsSelectValid = this.validateField('targets_select',
-                    !this.$refs.targetComponents
-                        .map(targetComponent => targetComponent.validateEntityTypeSelection())
-                        .includes(false)
-                );
 
+                let targetsValid = true;
+                let targetsSelectValid = true;
                 let matchingMethodGroupValid = true;
-                if (this.$refs.matchingMethodGroupComponent)
-                    matchingMethodGroupValid = this.$refs.matchingMethodGroupComponent.validateLogicBox();
-                matchingMethodGroupValid = this.validateField('matching_methods', matchingMethodGroupValid);
+                if (this.linksetSpec.matching === 'methods') {
+                    targetsValid = this.validateField('targets', this.linksetSpec.targets.length > 0);
+                    targetsSelectValid = this.validateField('targets_select',
+                        !this.$refs.targetComponents
+                            .map(targetComponent => targetComponent.validateEntityTypeSelection())
+                            .includes(false)
+                    );
 
-                return sourcesValid && targetsValid
-                    && sourcesSelectValid && targetsSelectValid && matchingMethodGroupValid;
+                    if (this.$refs.matchingMethodGroupComponent)
+                        matchingMethodGroupValid = this.$refs.matchingMethodGroupComponent.validateLogicBox();
+                    matchingMethodGroupValid = this.validateField('matching_methods', matchingMethodGroupValid);
+                }
+
+                const extractionsValid = this.linksetSpec.matching === 'extract'
+                    ? this.validateField('extract',
+                        !this.$refs.extractions || !this.$refs.extractions
+                            .map(extraction => extraction.validateExtraction())
+                            .includes(false)
+                    ) : true;
+
+                return sourcesValid && sourcesSelectValid && targetsValid && targetsSelectValid
+                    && matchingMethodGroupValid && extractionsValid;
             },
 
             onToggle(isOpen) {
@@ -295,6 +374,29 @@
                 this.linksetSpec[key].push('');
             },
 
+            createExtract() {
+                return {
+                    sources: [['uri']],
+                    targets: [['']],
+                    entity_type_selections: [],
+                    strengths: [],
+                    s_norm: 'maximum_s_norm',
+                    threshold: 0,
+                };
+            },
+
+            updateView() {
+                if (this.linksetSpec.matching === 'methods')
+                    this.$root.updateView(this.linksetSpec.id, 'linkset',
+                        new Set([...this.linksetSpec.sources, ...this.linksetSpec.targets]));
+                else
+                    this.$root.updateView(this.linksetSpec.id, 'linkset',
+                        new Set(Object.values(this.linksetSpec.extract.elements).reduce((acc, element) => {
+                            acc.push(...element.entity_type_selections);
+                            return acc;
+                        }, [])));
+            },
+
             updateEntityTypeSelection(key, index, id) {
                 const oldId = this.linksetSpec[key][index];
 
@@ -303,23 +405,54 @@
                 else
                     this.$delete(this.linksetSpec[key], index);
 
-                if (!this.linksetSpec[key].find(etsId => etsId === oldId))
-                    this.$root.getRecursiveElements(this.linksetSpec.methods, 'conditions').forEach(condition => {
-                        if (condition[key].properties.hasOwnProperty(oldId))
-                            this.$delete(condition[key].properties, oldId);
-                    });
+                const shouldRemove = !this.linksetSpec[key].find(etsId => etsId === oldId);
+                const shouldAdd = id !== undefined;
 
-                if (id !== undefined)
-                    this.$root.getRecursiveElements(this.linksetSpec.methods, 'conditions').forEach(condition => {
-                        if (!condition[key].properties.hasOwnProperty(id))
-                            this.$set(condition[key].properties, id, [{
-                                property: [''],
-                                transformers: [],
-                            }]);
-                    });
+                if (this.linksetSpec.matching === 'methods') {
+                    if (shouldRemove)
+                        this.$root.getRecursiveElements(this.linksetSpec.methods, 'conditions').forEach(condition => {
+                            if (condition[key].properties.hasOwnProperty(oldId))
+                                this.$delete(condition[key].properties, oldId);
+                        });
 
-                this.$root.updateView(this.linksetSpec.id, 'linkset',
-                    new Set([...this.linksetSpec.sources, ...this.linksetSpec.targets]));
+                    if (shouldAdd)
+                        this.$root.getRecursiveElements(this.linksetSpec.methods, 'conditions').forEach(condition => {
+                            if (!condition[key].properties.hasOwnProperty(id))
+                                this.$set(condition[key].properties, id, [{
+                                    property: [''],
+                                    transformers: [],
+                                }]);
+                        });
+                }
+                else if (this.linksetSpec.matching === 'extract') {
+                    if (shouldRemove && this.linksetSpec.extract.elements.hasOwnProperty(oldId))
+                        this.$delete(this.linksetSpec.extract.elements, oldId);
+
+                    if (shouldAdd && (!this.linksetSpec.extract.elements.hasOwnProperty(id)))
+                        this.$set(this.linksetSpec.extract.elements, id, this.createExtract());
+                }
+
+                this.updateView();
+            },
+
+            updateType() {
+                if (this.linksetSpec.matching === 'methods') {
+                    this.addEntityTypeSelection('targets');
+                    this.linksetSpec.extract.elements = {};
+                    this.addCondition(this.linksetSpec.methods);
+                }
+                else if (this.linksetSpec.matching === 'extract') {
+                    this.linksetSpec.targets = [];
+                    this.linksetSpec.methods = {type: 'and', conditions: []};
+                    this.linksetSpec.extract.elements = this.linksetSpec.sources
+                        .filter(entityTypeSelection => entityTypeSelection !== '')
+                        .reduce((acc, entityTypeSelection) => ({
+                            ...acc,
+                            [entityTypeSelection]: this.createExtract()
+                        }), {});
+                }
+
+                this.updateView();
             },
 
             updateLogicBoxTypes(conditions) {
@@ -370,14 +503,20 @@
             if (this.linksetSpec.sources.length === 0)
                 this.addEntityTypeSelection('sources');
 
-            if (this.linksetSpec.targets.length === 0)
-                this.addEntityTypeSelection('targets');
-
             this.useFuzzyLogic = !['and', 'or'].includes(this.linksetSpec.methods.type);
         },
         watch: {
             useFuzzyLogic() {
                 this.updateLogicBoxTypes(this.linksetSpec.methods);
+
+                if (this.useFuzzyLogic && !this.linksetSpec.extract.hasOwnProperty('s_norm')) {
+                    this.$set(this.linksetSpec.extract, 's_norm', 'maximum_s_norm');
+                    this.$set(this.linksetSpec.extract, 'threshold', 0);
+                }
+                else if (!this.useFuzzyLogic) {
+                    this.$delete(this.linksetSpec.extract, 's_norm');
+                    this.$delete(this.linksetSpec.extract, 'threshold');
+                }
             },
         },
     };
