@@ -1,7 +1,7 @@
 <template>
-  <div class="row align-items-center">
-    <div v-if="!entityTypeSelection" class="col-auto pr-0">
-      <select-box :id="'linkset_' + linksetSpec.id + '_entity_type_selection_label_' + id" :value="entityTypeSelection"
+  <div class="row align-items-center mb-1">
+    <div v-if="!entityTypeSelection" class="col-auto px-0">
+      <select-box :id="'entity_type_selection_' + _uid" :value="entityTypeSelection"
                   v-bind:class="{'is-invalid': errors.includes('entityTypeSelection')}"
                   @input="$emit('input', parseInt($event))">
         <option disabled selected value="">Choose an entity-type selection</option>
@@ -15,11 +15,11 @@
       </div>
     </div>
 
-    <div v-else class="ml-3">
+    <div v-else>
       {{ entityTypeSelection.label }}
     </div>
 
-    <div class="col-auto pl-0 ml-3">
+    <div class="col-auto px-0 ml-3">
       <button-delete size="sm" class="btn-sm" @click="$emit('remove')"/>
     </div>
   </div>
@@ -32,15 +32,13 @@
         name: "EntityTypeSelection",
         mixins: [ValidationMixin],
         props: {
-            linksetSpec: Object,
             entityTypeSelection: Object,
-            id: String,
-            selectionKey: String,
+            selectedIds: Array,
         },
         computed: {
             entityTypeSelections() {
                 return this.$root.entityTypeSelections.filter(entityTypeSelection => {
-                    return !this.linksetSpec[this.selectionKey].includes(entityTypeSelection.id.toString());
+                    return !this.selectedIds.includes(entityTypeSelection.id);
                 });
             },
         },

@@ -224,7 +224,7 @@
                     ...prop,
                     properties: this.allowLinksOnly && prop.properties
                         ? Object.keys(prop.properties).reduce((acc, property) => {
-                            if (prop.properties[property].isLink)
+                            if (prop.properties[property].name === 'uri' || prop.properties[property].isLink)
                                 acc[property] = prop.properties[property];
                             return acc;
                         }, {}) : prop.properties,
@@ -267,7 +267,8 @@
                     const s = search.toLowerCase();
                     const property = properties.hasOwnProperty(option) ? properties[option] : null;
 
-                    const linksOnlyMatches = !this.allowLinksOnly || (property && property.isLink);
+                    const linksOnlyMatches = !this.allowLinksOnly || (property &&
+                        (property.isLink || property.name === 'uri'));
                     const optionMatches = (option || '').toLowerCase().indexOf(s) > -1;
                     const shortUriMatches = property && (property.shortenedUri || '').toLowerCase().indexOf(s) > -1;
                     const uriMatches = property && (property.uri || '').toLowerCase().indexOf(s) > -1;

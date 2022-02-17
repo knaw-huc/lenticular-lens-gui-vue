@@ -94,10 +94,8 @@
             <entity-type-selection
                 v-for="(source, index) in linksetSpec.sources"
                 :key="index"
-                :id="'source_' + index"
-                :linkset-spec="linksetSpec"
                 :entity-type-selection="$root.getEntityTypeSelectionById(source)"
-                selection-key="sources"
+                :selected-ids="linksetSpec.sources"
                 @input="updateEntityTypeSelection('sources', index, $event)"
                 @remove="updateEntityTypeSelection('sources', index)"
                 ref="sourceComponents"/>
@@ -122,10 +120,8 @@
             <entity-type-selection
                 v-for="(target, index) in linksetSpec.targets"
                 :key="index"
-                :id="'target_' + index"
-                :linkset-spec="linksetSpec"
                 :entity-type-selection="$root.getEntityTypeSelectionById(target)"
-                selection-key="targets"
+                :selected-ids="linksetSpec.targets"
                 @input="updateEntityTypeSelection('targets', index, $event)"
                 @remove="updateEntityTypeSelection('targets', index)"
                 ref="targetComponents"/>
@@ -138,15 +134,51 @@
       </sub-card>
 
       <sub-card v-if="linksetSpec.matching === 'extract'" label="Existing links" :hasError="errors.includes('extract')">
-        <template v-for="(extractionProperties, etsId, etsIdx) in linksetSpec.extract">
-          <div v-for="(extractionProperty, index) in extractionProperties" class="ml-4 py-2"
-               v-bind:class="{'border-top': etsIdx !== 0 || index !== 0, 'mt-2': etsIdx === 0 && index === 0}">
-            <ets-property :entity-type-selection="$root.getEntityTypeSelectionById(etsId)"
-                          :property="extractionProperty" :allow-delete="index > 0" :allow-links-only="true"
-                          @clone="linksetSpec.extract[etsId].splice(index + 1, 0, [''])"
-                          @delete="linksetSpec.extract[etsId].splice(index, 1)" ref="extractionProperties"/>
+        <template v-slot:columns>
+          <div class="col-auto">
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" autocomplete="off"
+                     :id="'fuzzy_linkset_' + linksetSpec.id" v-model="useFuzzyLogic"/>
+              <label class="custom-control-label" :for="'fuzzy_linkset_' + linksetSpec.id">Use fuzzy logic</label>
+            </div>
           </div>
         </template>
+
+        <div class="position-relative shadow border bg-secondary-light p-3 mt-3"
+             v-bind:class="[{'is-invalid': errors.includes('extract')}]">
+          <div class="row align-items-center">
+            <div class="col-auto">
+              <fa-icon icon="chevron-down" size="lg" v-b-toggle="'extraction_' + _uid"></fa-icon>
+            </div>
+
+            <template
+                v-if="useFuzzyLogic && Object.values(linksetSpec.extract.elements).find(el => el.strengths.length > 0)">
+              <div class="col">
+                <select :id="'extract_s_norm_' + _uid" class="form-control form-control-sm"
+                        v-model="linksetSpec.extract.s_norm">
+                  <option v-for="(description, key) in allSNorms" :value="key">
+                    {{ description }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="col-auto">
+                <range :id="'extract_threshold_' + _uid" v-model.number="linksetSpec.extract.threshold"
+                       label="Threshold" :allow-zero="false"/>
+              </div>
+            </template>
+          </div>
+
+          <b-collapse visible :id="'extraction_' + _uid" :ref="'extraction_' + _uid">
+            <extraction v-for="(extraction, etsId) in linksetSpec.extract.elements"
+                        :key="etsId"
+                        :entity-type-selection="$root.getEntityTypeSelectionById(etsId)"
+                        :extraction="extraction"
+                        :use-fuzzy-logic="useFuzzyLogic"
+                        @update="updateView"
+                        ref="extractions"/>
+          </b-collapse>
+        </div>
       </sub-card>
 
       <sub-card v-if="linksetSpec.matching === 'methods'" label="Matching Methods" :has-columns="true"
@@ -197,6 +229,7 @@
 
     import Status from "./Status";
     import Condition from "./Condition";
+    import Extraction from "./Extraction";
     import EntityTypeSelection from "./EntityTypeSelection";
 
     export default {
@@ -209,6 +242,7 @@
             Status,
             EntityTypeSelection,
             Condition,
+            Extraction,
             LogicBox
         },
         props: {
@@ -221,6 +255,7 @@
                 useFuzzyLogic: false,
                 tNorms: Object.keys(props.tNorms),
                 sNorms: Object.keys(props.sNorms),
+                allSNorms: props.sNorms,
                 fuzzyLogicOptions: {...props.tNorms, ...props.sNorms},
                 fuzzyLogicOptionGroups: props.fuzzyLogicOptionGroups,
             };
@@ -272,17 +307,15 @@
                     matchingMethodGroupValid = this.validateField('matching_methods', matchingMethodGroupValid);
                 }
 
-                let extractValid = true;
-                if (this.linksetSpec.matching === 'extract') {
-                    extractValid = this.validateField('extract',
-                        !this.$refs.extractionProperties
-                            .map(extractionProperty => extractionProperty.validateProperty())
+                const extractionsValid = this.linksetSpec.matching === 'extract'
+                    ? this.validateField('extract',
+                        !this.$refs.extractions || !this.$refs.extractions
+                            .map(extraction => extraction.validateExtraction())
                             .includes(false)
-                    );
-                }
+                    ) : true;
 
                 return sourcesValid && sourcesSelectValid && targetsValid && targetsSelectValid
-                    && matchingMethodGroupValid && extractValid;
+                    && matchingMethodGroupValid && extractionsValid;
             },
 
             onToggle(isOpen) {
@@ -341,6 +374,29 @@
                 this.linksetSpec[key].push('');
             },
 
+            createExtract() {
+                return {
+                    sources: [['uri']],
+                    targets: [['']],
+                    entity_type_selections: [],
+                    strengths: [],
+                    s_norm: 'maximum_s_norm',
+                    threshold: 0,
+                };
+            },
+
+            updateView() {
+                if (this.linksetSpec.matching === 'methods')
+                    this.$root.updateView(this.linksetSpec.id, 'linkset',
+                        new Set([...this.linksetSpec.sources, ...this.linksetSpec.targets]));
+                else
+                    this.$root.updateView(this.linksetSpec.id, 'linkset',
+                        new Set(Object.values(this.linksetSpec.extract.elements).reduce((acc, element) => {
+                            acc.push(...element.entity_type_selections);
+                            return acc;
+                        }, [])));
+            },
+
             updateEntityTypeSelection(key, index, id) {
                 const oldId = this.linksetSpec[key][index];
 
@@ -369,33 +425,34 @@
                         });
                 }
                 else if (this.linksetSpec.matching === 'extract') {
-                    if (shouldRemove && this.linksetSpec.extract.hasOwnProperty(oldId))
-                        this.$delete(this.linksetSpec.extract, oldId);
+                    if (shouldRemove && this.linksetSpec.extract.elements.hasOwnProperty(oldId))
+                        this.$delete(this.linksetSpec.extract.elements, oldId);
 
-                    if (shouldAdd && (!this.linksetSpec.extract.hasOwnProperty(id)))
-                        this.$set(this.linksetSpec.extract, id, [['']]);
+                    if (shouldAdd && (!this.linksetSpec.extract.elements.hasOwnProperty(id)))
+                        this.$set(this.linksetSpec.extract.elements, id, this.createExtract());
                 }
 
-                this.$root.updateView(this.linksetSpec.id, 'linkset',
-                    new Set([...this.linksetSpec.sources, ...this.linksetSpec.targets]));
+                this.updateView();
             },
 
             updateType() {
                 if (this.linksetSpec.matching === 'methods') {
                     this.addEntityTypeSelection('targets');
-                    this.linksetSpec.extract = {};
+                    this.linksetSpec.extract.elements = {};
                     this.addCondition(this.linksetSpec.methods);
                 }
                 else if (this.linksetSpec.matching === 'extract') {
                     this.linksetSpec.targets = [];
                     this.linksetSpec.methods = {type: 'and', conditions: []};
-                    this.linksetSpec.extract = this.linksetSpec.sources
+                    this.linksetSpec.extract.elements = this.linksetSpec.sources
                         .filter(entityTypeSelection => entityTypeSelection !== '')
                         .reduce((acc, entityTypeSelection) => ({
                             ...acc,
-                            [entityTypeSelection]: [['']]
+                            [entityTypeSelection]: this.createExtract()
                         }), {});
                 }
+
+                this.updateView();
             },
 
             updateLogicBoxTypes(conditions) {
@@ -451,6 +508,15 @@
         watch: {
             useFuzzyLogic() {
                 this.updateLogicBoxTypes(this.linksetSpec.methods);
+
+                if (this.useFuzzyLogic && !this.linksetSpec.extract.hasOwnProperty('s_norm')) {
+                    this.$set(this.linksetSpec.extract, 's_norm', 'maximum_s_norm');
+                    this.$set(this.linksetSpec.extract, 'threshold', 0);
+                }
+                else if (!this.useFuzzyLogic) {
+                    this.$delete(this.linksetSpec.extract, 's_norm');
+                    this.$delete(this.linksetSpec.extract, 'threshold');
+                }
             },
         },
     };
