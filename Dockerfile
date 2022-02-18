@@ -3,6 +3,8 @@ FROM node:lts-alpine as builder
 COPY . /app
 WORKDIR /app
 
+RUN apk add --update python3 make g++
+
 RUN npm install
 RUN npm run build
 
