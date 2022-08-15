@@ -10,6 +10,6 @@ export const getLenticularLensApi = () => getVar(lenticularLensApi);
 
 function getVar(key) {
     if (key.startsWith('$VUE_APP_'))
-        return process.env[key.substr(1)];
+        return process.env[key.substring(1)];
     return key;
 }

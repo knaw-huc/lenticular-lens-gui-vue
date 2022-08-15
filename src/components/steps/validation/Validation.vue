@@ -185,6 +185,12 @@
                       <fa-icon icon="question"/>
                       Uncertain
                     </b-dropdown-item-button>
+
+                    <b-dropdown-item-button :disabled="isUpdating"
+                                            @click="validateSelection('unchecked')">
+                      <fa-icon icon="chevron-left"/>
+                      Unchecked (reset validation)
+                    </b-dropdown-item-button>
                   </b-dropdown>
 
                   <b-dropdown variant="secondary" size="sm" :disabled="isUpdating"
