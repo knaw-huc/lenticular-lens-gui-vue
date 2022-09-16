@@ -43,6 +43,20 @@ export default {
         },
     },
     methods: {
+        reset() {
+            this.job = null;
+            this.linksets = [];
+            this.lenses = [];
+            this.clusterings = [];
+            this.entityTypeSelections = [];
+            this.linksetSpecs = [];
+            this.lensSpecs = [];
+            this.views = [];
+
+            if (this.jobSocket)
+                this.jobSocket.disconnect();
+        },
+
         getDatasets(graphqlEndpoint) {
             return this.datasets.hasOwnProperty(graphqlEndpoint) ? this.datasets[graphqlEndpoint] : {};
         },
@@ -332,12 +346,23 @@ export default {
             return callApi('/user_info');
         },
 
+        async loadJobs() {
+            const jobs = await callApi('/job/list');
+            jobs.forEach(job => {
+                job.created_at = job.created_at ? new Date(job.created_at) : null;
+                job.updated_at = job.updated_at ? new Date(job.updated_at) : null;
+            });
+            return jobs;
+        },
+
         async loadJob(id) {
             const newJobId = !this.job || (id !== this.job.job_id);
 
             const job = await callApi('/job/' + id);
-            if (!job)
+            if (!job) {
+                this.reset();
                 return;
+            }
 
             job.created_at = job.created_at ? new Date(job.created_at) : null;
             job.updated_at = job.updated_at ? new Date(job.updated_at) : null;
@@ -463,6 +488,10 @@ export default {
 
         async updateJob(jobData) {
             return callApi('/job/update', jobData, {isJson: true});
+        },
+
+        async deleteJob(id) {
+            return callApi(`/job/${id}`, undefined, {isDelete: true});
         },
 
         async runLinkset(id, restart) {
