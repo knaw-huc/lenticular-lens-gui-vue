@@ -2,13 +2,13 @@
   <div class="main-card" v-bind:class="{'is-invalid': hasError}" ref="cardElem">
     <handle v-if="hasHandle && !visible" class="absolute-handle"/>
 
-    <div class="bg-light py-2" v-bind:class="{'sticky-top': visible}">
+    <div v-if="label || value" class="bg-light py-2" v-bind:class="{'sticky-top': visible}">
       <div class="row flex-nowrap align-items-center justify-content-start">
         <div v-if="hasCollapse" class="col-auto">
           <fa-icon icon="chevron-down" size="2x" v-b-toggle="hasCollapse ? id : {}"></fa-icon>
         </div>
 
-        <div class="col-auto small text-uppercase text-muted p-0">
+        <div v-if="resId" class="col-auto small text-uppercase text-muted p-0">
           {{ resType ? resType + ' ' : '' }}#{{ resId }}
         </div>
 

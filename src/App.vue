@@ -11,17 +11,22 @@
             </div>
           </template>
 
-          <research
+          <research-form
+              v-if="!isLoading && (jobId || createNew)"
               :job-id="jobId"
-              :job-title="jobMetadata.title"
-              :job-description="jobMetadata.description"
-              :job-link="jobMetadata.link"
-              :research-form="researchForm"
-              :is-loading="isLoading"
+              :job-title="$root.job ? $root.job.job_title : null"
+              :job-description="$root.job ? $root.job.job_description : null"
+              :job-link="$root.job ? $root.job.job_link : null"
               :is-updating="isUpdating"
-              @load="setJobId($event)"
               @create="createJob($event)"
               @update="updateJobResearch($event)"/>
+
+          <research-list
+              v-else
+              :job-id="jobId"
+              :is-loading="isLoading"
+              @load="setJobId($event)"
+              @new="createNew = true"/>
         </tab-content-structure>
       </tab-content>
 
@@ -126,22 +131,19 @@
         </tab-content-structure>
       </tab-content>
 
-      <template v-if="(props.activeTabIndex === 0  && !$root.job) || [1,2,3].includes(props.activeTabIndex)"
-                slot="next" slot-scope="props">
-        <template v-if="props.activeTabIndex === 0 && !$root.job">
+      <template v-if="[0,1,2,3].includes(props.activeTabIndex)" slot="next" slot-scope="props">
+        <template v-if="props.activeTabIndex === 0">
           <wizard-button
+              v-if="$root.job || createNew"
               :style="props.fillButtonStyle"
-              :disabled="props.loading || researchForm === 'existing'"
-              @click.native.prevent.stop="researchForm='existing'">
-            Existing research
+              @click.native.stop="setJobId()">
+            Cancel
           </wizard-button>
-          &nbsp;
+
           <wizard-button
-              v-if="hasChanges"
               :style="props.fillButtonStyle"
-              :disabled="props.loading || researchForm === 'new'"
-              @click.native.prevent.stop="researchForm='new'">
-            New research
+              :disabled="props.loading || !$root.job">
+            Next
           </wizard-button>
         </template>
 
@@ -170,7 +172,8 @@
 <script>
     import Draggable from 'vuedraggable';
 
-    import Research from './components/steps/research/Research';
+    import ResearchForm from './components/steps/research/ResearchForm';
+    import ResearchList from './components/steps/research/ResearchList';
     import EntityTypeSelection from './components/steps/entity_type_selections/EntityTypeSelection';
     import Linkset from './components/steps/linksets/Linkset';
     import Lens from './components/steps/lenses/Lens';
@@ -188,7 +191,8 @@
         components: {
             Draggable,
             TabContentStructure,
-            Research,
+            ResearchForm,
+            ResearchList,
             EntityTypeSelection,
             Linkset,
             Lens,
@@ -200,9 +204,8 @@
                 title: getTitle(),
                 subtitle: getSubTitle(),
                 tabError: '',
-                researchForm: '',
-                idToLoad: '',
                 jobId: '',
+                createNew: false,
                 isSaved: true,
                 isLoading: false,
                 isUpdating: false,
@@ -216,16 +219,6 @@
             };
         },
         computed: {
-            jobMetadata() {
-                return {
-                    id: this.$root.job ? this.$root.job.job_id : null,
-                    updated_at: this.$root.job ? this.$root.job.updated_at : null,
-                    title: this.$root.job ? this.$root.job.job_title : null,
-                    description: this.$root.job ? this.$root.job.job_description : null,
-                    link: this.$root.job ? this.$root.job.job_link : null
-                };
-            },
-
             hasChanges() {
                 return !Boolean(this.$root.job)
                     || this.$root.hasUnsavedEntityTypeSelections || this.$root.hasUnsavedLinksetSpecs
@@ -363,16 +356,21 @@
 
             activateStep(stepName, jump = false) {
                 const stepIndex = this.steps.indexOf(stepName);
-                if (stepIndex < 0 || typeof this.$refs.formWizard.tabs[stepIndex] === 'undefined')
-                    return false;
+                if (stepIndex < 0 || typeof this.$refs.formWizard.tabs[stepIndex] === 'undefined') {
+                    for (let i = 1; i < this.steps.length; i++)
+                        this.$set(this.$refs.formWizard.tabs[i], 'checked', false);
 
-                for (let i = 0; i <= stepIndex; i++)
-                    this.$set(this.$refs.formWizard.tabs[i], 'checked', true);
+                    this.$set(this.$refs.formWizard, 'maxStep', 0);
+                }
+                else {
+                    for (let i = 0; i <= stepIndex; i++)
+                        this.$set(this.$refs.formWizard.tabs[i], 'checked', true);
 
-                this.$set(this.$refs.formWizard, 'maxStep', stepIndex);
+                    this.$set(this.$refs.formWizard, 'maxStep', stepIndex);
 
-                if (jump)
-                    this.$refs.formWizard.changeTab(this.$refs.formWizard.activeTabIndex, stepIndex);
+                    if (jump)
+                        this.$refs.formWizard.changeTab(this.$refs.formWizard.activeTabIndex, stepIndex);
+                }
             },
 
             addEntityTypeSelection() {
@@ -416,14 +414,14 @@
             async setJobId(jobId, fromUrl = false) {
                 this.jobId = jobId;
                 this.isLoading = true;
+                this.createNew = false;
 
                 if (!fromUrl) {
                     const parsedUrl = new URL(window.location.href);
-                    parsedUrl.searchParams.set('job_id', jobId);
+                    this.jobId
+                        ? parsedUrl.searchParams.set('job_id', this.jobId)
+                        : parsedUrl.searchParams.delete('job_id');
                     window.history.pushState(null, null, parsedUrl.href);
-                }
-                else {
-                    this.researchForm = 'existing';
                 }
 
                 if (this.jobId) {
@@ -441,6 +439,10 @@
 
                     if (this.$root.linksetSpecs.length === 0)
                         this.$root.addLinksetSpec();
+                }
+                else {
+                    this.activateStep();
+                    this.$root.reset();
                 }
 
                 this.isLoading = false;
