@@ -29,11 +29,11 @@
       </p>
 
       <div class="text-center pt-4">
-        <img src="/images/4 Meulder Hans (Cluster-Compact Compact-Evidence).jpg" width="900"/>
+        <img src="../../assets/images/4 Meulder Hans (Cluster-Compact Compact-Evidence).jpg" width="900"/>
       </div>
 
       <div class="text-center pt-4">
-        <img src="/images/5 Meulder Hans (Cluster-Compact Evidence).jpg" width="900"/>
+        <img src="../../assets/images/5 Meulder Hans (Cluster-Compact Evidence).jpg" width="900"/>
       </div>
 
       <div class="h2 pt-4">Reconciled Nodes</div>

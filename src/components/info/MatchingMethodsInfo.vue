@@ -1,12 +1,12 @@
 <template>
   <button-info popup_title="MATCHING METHODS AND LOGICAL OPERATOR">
     <div class="h3 pt-5 text-secondary">Simple Matching Scenario-1</div>
-    <img width="700px" src="/images/4_MethodSimple.png">
+    <img width="700px" src="../../assets/images/4_MethodSimple.png">
 
     <div class="h5">Matching two datasets using <strong>one</strong> property per dataset</div>
 
     <div class="h3 pt-5 text-secondary">Simple Matching Scenario-2</div>
-    <img width="700px" src="/images/5_MethodProp.png">
+    <img width="700px" src="../../assets/images/5_MethodProp.png">
 
     <div class="h5">
       More than one property per dataset is allowed.<br>
@@ -16,7 +16,7 @@
     <div class="h3 pt-5 text-secondary">
       Simple Matching Scenario-3
     </div>
-    <img width="700px" src="/images/6_MethodDs.png">
+    <img width="700px" src="../../assets/images/6_MethodDs.png">
 
     <div class="h5">
       More than one dataset is allowed for a <span class="text-secondary">SOURCE</span> or a
@@ -26,7 +26,7 @@
     </div>
 
     <div class="h3 pt-5 text-secondary">Complex Matching Scenario</div>
-    <img width="700px" src="/images/7_MethodFull.png">
+    <img width="700px" src="../../assets/images/7_MethodFull.png">
 
     <div class="h5">
       More than one method is allowed.<br>

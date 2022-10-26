@@ -35,14 +35,14 @@
       </ul>
 
       <div class="text-center pt-4">
-        <img src="/images/1 Meulder Hans (Cluster).jpg" width="700"/>
+        <img src="../../assets/images/1 Meulder Hans (Cluster).jpg" width="700"/>
         <p class="h5 pt-4 pl-5 font-weight-bold">
           Original Cluster
         </p>
       </div>
 
       <div class="text-center pt-4">
-        <img src="/images/2 Meulder Hans (Cluster-Compact).jpg" width="700"/>
+        <img src="../../assets/images/2 Meulder Hans (Cluster-Compact).jpg" width="700"/>
         <p class="h5 pt-4 pl-5 font-weight-bold">
           Compact Cluster
         </p>
@@ -58,7 +58,7 @@
       </p>
 
       <div class="text-center pt-4">
-        <img src="/images/1  Pieters Grietje (Cluster).jpg" width="800"/>
+        <img src="../../assets/images/1  Pieters Grietje (Cluster).jpg" width="800"/>
       </div>
 
       <p class="h5 pt-4 pl-5">
@@ -69,7 +69,7 @@
       </p>
 
       <div class="text-center pt-4">
-        <img src="/images/2  Pieters Grietje (Cluster-Compact).jpg" width="800"/>
+        <img src="../../assets/images/2  Pieters Grietje (Cluster-Compact).jpg" width="800"/>
       </div>
 
       <div class="h3 pt-5">Expanding a Compact Node with Double-Click</div>
@@ -83,7 +83,7 @@
       </p>
 
       <div class="text-center pt-4">
-        <img src="/images/3 Meulder Hans (Cluster-Compact Selected).jpg" width="1000"/>
+        <img src="../../assets/images/3 Meulder Hans (Cluster-Compact Selected).jpg" width="1000"/>
       </div>
     </div>
   </button-info>

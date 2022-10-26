@@ -2,7 +2,7 @@
   <button-info popup_title="SOURCES">
     <div class="h2">COMPOSING VIRTUAL SOURCE FROM COLLECTIONS</div>
 
-    <img width="700px" src="/images/VirtualCollection.png"/>
+    <img width="700px" src="../../assets/images/VirtualCollection.png"/>
 
     <p class="h5 text-left pt-4 pb-4">
       All collections of interest selected as sources are combined into
@@ -13,6 +13,6 @@
 
     <hr>
 
-    <img class="pb-4" width="1000px" src="/images/Documentation.png"/>
+    <img class="pb-4" width="1000px" src="../../assets/images/Documentation.png"/>
   </button-info>
 </template>

@@ -59,7 +59,7 @@
       </ul>
 
       <div class="text-center pt-4">
-        <img src="/images/1 Meulder Hans (Cluster).jpg" width="700" height="600"/>
+        <img src="../../assets/images/1 Meulder Hans (Cluster).jpg" width="700" height="600"/>
       </div>
     </div>
   </button-info>

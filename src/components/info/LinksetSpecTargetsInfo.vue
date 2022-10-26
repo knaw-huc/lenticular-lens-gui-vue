@@ -2,7 +2,7 @@
   <button-info popup_title="TARGETS">
     <div class="h2">MATCHING SOURCE AGAINST TARGET</div>
 
-    <img src="/images/Source_Target.png" width="800px">
+    <img src="../../assets/images/Source_Target.png" width="800px">
 
     <ul class="text-left pt-5">
       <li>Several collections can be selected as <span class="text-secondary">SOURCE</span>.</li>

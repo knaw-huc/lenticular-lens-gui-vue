@@ -21,7 +21,7 @@
     <div v-if="template.items.size > 0" class="col-auto pr-0 form-inline">
       <template v-for="[key, item] in template.items.entries()">
         <div v-if="item.type === 'boolean'" class="form-check">
-          <input class="form-cheConditionConfigurationck-input" type="checkbox" :id="`tr_${key}_${id}`"
+          <input class="form-check-input" type="checkbox" :id="`tr_${key}_${id}`"
                  v-model="transformer.parameters[key]"
                  v-bind:class="{'is-invalid': errors.includes(`transformer_value_${key}`)}">
 
