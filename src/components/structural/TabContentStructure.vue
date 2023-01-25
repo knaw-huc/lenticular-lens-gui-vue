@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="row align-items-center justify-content-between">
-      <div class="col-auto">
+      <div v-if="showTitle" class="col-auto">
         <h2>{{ title }}</h2>
       </div>
 
@@ -28,6 +28,10 @@
             title: String,
             tabError: String,
             isSaved: Boolean,
+            showTitle: {
+                type: Boolean,
+                default: true
+            },
         },
     };
 </script>

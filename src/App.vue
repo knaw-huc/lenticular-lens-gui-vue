@@ -2,7 +2,8 @@
   <div class="container" id="app">
     <form-wizard :title="title" :subtitle="subtitle" color="#efc501" shape="square" ref="formWizard">
       <tab-content title="Research" :before-change="validateResearchTab">
-        <tab-content-structure title="Research" :tab-error="tabError" :is-saved="isSaved">
+        <tab-content-structure title="Research" :tab-error="tabError" :is-saved="isSaved"
+                               :show-title="state === 'done'">
           <template v-slot:header>
             <div class="col-auto" v-if="$root.job">
               <span class="badge badge-secondary">
@@ -11,8 +12,20 @@
             </div>
           </template>
 
+          <loading v-if="state === 'init'" class="mt-3"/>
+
+          <card v-else-if="state === 'auth'" :has-collapse="false">
+            <div class="col-auto text-center">
+              <p class="font-weight-bold px-5" v-html="authText"></p>
+
+              <a class="btn btn-secondary" :href="loginUrl">
+                Login
+              </a>
+            </div>
+          </card>
+
           <research-form
-              v-if="!isLoading && (jobId || createNew)"
+              v-else-if="!isLoading && (jobId || createNew)"
               :job-id="jobId"
               :job-title="$root.job ? $root.job.job_title : null"
               :job-description="$root.job ? $root.job.job_description : null"
@@ -180,10 +193,10 @@
     import Validation from './components/steps/validation/Validation';
     import Export from './components/steps/export/Export';
 
-    import ValidationMixin from "./mixins/ValidationMixin";
+    import ValidationMixin from './mixins/ValidationMixin';
     import TabContentStructure from './components/structural/TabContentStructure';
 
-    import {getTitle, getSubTitle} from './utils/config';
+    import {getTitle, getSubTitle, isAuthEnabled, getAuthText, getLenticularLensApi} from './utils/config';
 
     export default {
         name: 'App',
@@ -203,13 +216,14 @@
             return {
                 title: getTitle(),
                 subtitle: getSubTitle(),
+                authText: getAuthText(),
                 tabError: '',
                 jobId: '',
                 createNew: false,
                 isSaved: true,
                 isLoading: false,
                 isUpdating: false,
-                isDownloading: false,
+                state: 'init',
                 entityTypeSelectionOpen: null,
                 linksetSpecOpen: null,
                 lensSpecOpen: null,
@@ -219,6 +233,10 @@
             };
         },
         computed: {
+            loginUrl() {
+                return '/login?redirect-uri=' + encodeURIComponent(window.location.href);
+            },
+
             hasChanges() {
                 return !Boolean(this.$root.job)
                     || this.$root.hasUnsavedEntityTypeSelections || this.$root.hasUnsavedLinksetSpecs
@@ -487,14 +505,23 @@
             },
         },
         async mounted() {
-            const urlParams = new URLSearchParams(window.location.search);
+            if (isAuthEnabled()) {
+                const response = await fetch(getLenticularLensApi() + '/user_info');
+                if (response.status === 401) {
+                    this.state = 'auth';
+                    return;
+                }
+            }
 
+            Promise.all([
+                this.$root.resetDownloads(),
+                this.$root.loadMethods()
+            ]).then(_ => this.state = 'done');
+
+            const urlParams = new URLSearchParams(window.location.search);
             const jobId = urlParams.get('job_id');
             if (jobId)
                 this.setJobId(jobId, true);
-
-            this.$root.resetDownloads();
-            this.$root.loadMethods();
         },
         watch: {
             hasEntityTypeSelections() {

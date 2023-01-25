@@ -13,6 +13,7 @@ $vs-state-active-bg: $secondary-very-light !important;
 $vs-state-active-color: inherit;
 $vs-component-placeholder-color: lightgrey;
 $themeColor: $secondary;
+$link-color: $secondary;
 
 @import '~bootstrap/scss/bootstrap.scss';
 @import '~bootstrap-vue/src/index.scss';
