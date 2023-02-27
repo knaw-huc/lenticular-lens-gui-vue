@@ -17,12 +17,12 @@
     "vue-slider-component": "^3.2.24",
     "bootstrap": "^4.6.2",
     "bootstrap-vue": "^2.23.1",
-    "socket.io-client": "^4.5.4",
+    "socket.io-client": "^4.6.1",
     "d3": "^7.8.2",
-    "@fortawesome/vue-fontawesome": "^2.0.9",
-    "@fortawesome/fontawesome-svg-core": "^6.2.1",
-    "@fortawesome/free-solid-svg-icons": "^6.2.1",
-    "@fortawesome/free-regular-svg-icons": "^6.2.1"
+    "@fortawesome/vue-fontawesome": "^2.0.10",
+    "@fortawesome/fontawesome-svg-core": "^6.3.0",
+    "@fortawesome/free-solid-svg-icons": "^6.3.0",
+    "@fortawesome/free-regular-svg-icons": "^6.3.0"
   },
   "devDependencies": {
     "@vue/cli-service": "^5.0.8",
